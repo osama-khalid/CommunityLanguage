@@ -21,11 +21,11 @@ while(1):
         page=r.json()
         for p in page:
             allPage.append(p)
-        allPage=list(set(allPage))
+        
     else:
         break
 
-
+allPage=list(set(allPage))
 file=open('4pleb'+'_'+board+'json','w')
 for f in allPage:
     file.write(f+'\n')
