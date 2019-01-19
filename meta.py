@@ -35,7 +35,7 @@ def helper(board,k):
         
     file=open(board+'_thread','w')
     for i in thread:
-        file.write(thread+'\n')
+        file.write(i+'\n')
         
     file.close()    
 
