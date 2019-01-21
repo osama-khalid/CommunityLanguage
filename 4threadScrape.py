@@ -2,10 +2,12 @@
 
 import json
 import requests
+import csv
 import time as time
 allPage=[]
 i=0
 board='pol'
+page=['200546074','200541442']
 def threadScrape(board,page):
     thread=[]
     r=requests.get("http://archive.4plebs.org/_/api/chan/thread/?board="+board+"&num="+str(page)).json()
@@ -33,4 +35,12 @@ def threadScrape(board,page):
             
     
     return(thread)
+csv_file=open(board+'text.csv','w')
+writer=csv.writer(csv_file,delimiter=',', lineterminator='\n')
     
+for p in page:
+    thread=threadScrape(board,p)
+    for row in thread:
+        writer.writerow(row)
+        
+        
