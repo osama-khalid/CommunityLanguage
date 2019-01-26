@@ -28,7 +28,8 @@ def helper(subreddit,k):
         else:
             c=c+1
         if c==100:
-            break    
+            break
+    file.close()
             
 t0 = threading.Thread(target=helper,args=('askreddit',1)) 
 t0.daemon =True
