@@ -35,7 +35,7 @@ t0 = threading.Thread(target=helper,args=('askreddit',1))
 t0.daemon =True
 t0.start()
 
-t1 = threading.Thread(target=helper,args=('KotakuInAction',1)) 
+t1 = threading.Thread(target=helper,args=('kotakuinaction',1)) 
 t1.daemon =True
 t1.start()
 
