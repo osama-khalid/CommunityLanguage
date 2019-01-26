@@ -28,7 +28,7 @@ def helper(board,k):
             break
 
     allPage=list(set(allPage))
-    file=open('4pleb'+'_'+board+'json','w')
+    file=open('4pleb'+'_'+board+'_json','w')
     for f in allPage:
         file.write(f+'\n')
         
