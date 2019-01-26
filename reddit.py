@@ -7,7 +7,7 @@ def helper(subreddit,k):
     d=0
     now = int(time.time())
     #subreddit='politics'
-    file=open('reddit'+'.'+subreddit+'','w')
+    file=open(subreddit+'.reddit','w')
     while(1):
         d=d+1
         if d%10==0:
@@ -27,7 +27,7 @@ def helper(subreddit,k):
                 
         else:
             c=c+1
-        if c==100:
+        if c==1000:
             break
     file.close()
             
@@ -47,7 +47,7 @@ t3 = threading.Thread(target=helper,args=('worldnews',1))
 t3.daemon =True
 t3.start()
 
-t4 = threading.Thread(target=helper,args=('poltics',1)) 
+t4 = threading.Thread(target=helper,args=('politics',1)) 
 t4.daemon =True
 t4.start()
 
