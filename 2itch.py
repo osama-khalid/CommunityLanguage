@@ -6,3 +6,4 @@ import os
 import string
 import argparse
 https://api.twitch.tv/v5/videos/366985422/comments?content_offset_seconds=15190&client_id=NnFyNm1paDkzdTFpMWE5b29wN3Z4MXdpczFzMTlw base64decode
+  https://api.twitch.tv/kraken/channels/cohhcarnage/videos?broadcast_type=upload&client_id=
