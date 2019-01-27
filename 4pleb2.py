@@ -7,7 +7,7 @@ import time as time
 def helper(board,k):
     allPage=[]
     i=0
-    
+    error=open(board+'.error','w')
     while(1):
         i=i+1
         if i%10==0:
@@ -20,9 +20,12 @@ def helper(board,k):
                 print("Wait")
                 time.sleep(60)
         if len(r.content)>5:
-            page=r.json()
-            for p in page:
-                allPage.append(p)
+            try:
+                page=r.json()
+                for p in page:
+                    allPage.append(p)
+            except:
+                error.write(str(i)+','+board+'\n')
             
         else:
             break
