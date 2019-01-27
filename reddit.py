@@ -22,12 +22,13 @@ def helper(subreddit,k):
         
         now=int(now)-2000
         if len(pageJson['data'])>0:
+            c=0
             for p in range(0,len(pageJson['data'])):
                 file.write(pageJson['data'][p]['id']+','+subreddit+'\n')
                 
         else:
             c=c+1
-        if c==1000:
+        if c==100:
             break
     file.close()
             
