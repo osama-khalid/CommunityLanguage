@@ -3,7 +3,7 @@ import csv
 
 board='askreddit'
 file = open(board+'.reddit','r').read().split('\n')
-csv_file=open(board+'_comment.csv','w')
+csv_file=open(board+'_comment.csv','w', encoding="utf-8")
 writer=csv.writer(csv_file,delimiter=',', lineterminator='\n')
 for f in file:
     row=f.split(',')
@@ -25,6 +25,6 @@ for f in file:
             image=1
         id=c['id']
         utc=c['created_utc']
-        writer.writerow([author,body,html,image,id,utc,subreddit,op])
+        writer.writerow([author,body,html,image,id,utc,subreddit,op,row[0]])
             
 csv_file.close()        
