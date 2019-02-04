@@ -6,8 +6,16 @@ import csv
 import time as time
 allPage=[]
 i=0
+
+
 board='pol'
-page=['200546074','200541442']
+file=open('4pleb'+'_'+board+'_json','r').read().split('\n')
+page=[]
+for row in file:
+    if len(row)>0:
+        page.append(row)
+
+#page=['200546074','200541442']
 
 
 def threadScrape(board,page):
