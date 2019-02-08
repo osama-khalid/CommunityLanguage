@@ -36,5 +36,5 @@ def helper(board,k):
         
         
     file.close()    
-    
+     
 helper('pol',1)
