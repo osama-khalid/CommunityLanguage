@@ -30,10 +30,7 @@ def helper(subreddit,k,j):
             for p in range(0,len(pageJson['data'])):
                 file.write(pageJson['data'][p]['id']+','+subreddit+'\n')
                 
-        else:
-            c=c+1
-        if c==100:
-            break
+
     file.close()
             
 t0 = threading.Thread(target=helper,args=(board,0,5)) 
