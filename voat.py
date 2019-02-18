@@ -57,7 +57,8 @@ while(initdate<cutoff):
             
         if len(prev)>0:
             for p in prev:
-                file.write(str(p)+'\n')
+                if p.find('voat.co')>-1:
+                    file.write(str(p)+'\n')
         i=i+1
         
     initdate=finaldate
