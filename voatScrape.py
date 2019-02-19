@@ -1,13 +1,14 @@
 import requests
 import copy
 import datetime
-
+import csv
 
 def voatScrape(link):
     thread=link.split('/')[-1]
-    subvoat=link.split('/')[-2]
+    board=link.split('/')[-2]
     #thread='3036816'
     i=0
+    data=[]
     while (1):
         url="https://voat.co/comments/"+thread+"/null/siblings/"+str(i)+"/Top"
         i=i+8
@@ -46,15 +47,34 @@ def voatScrape(link):
             body=body.replace('&#x27',"'")
             #body=body.replace('&#xA8;',"")
             #print(thread,author,body,img,url,id,utc,subvoat)
-            if body.find('&#x')>-1:
-                print(body[body.find('&#x')-5:].split(' ')[1])
+            #if body.find('&#x')>-1:
+            #   print(body[body.find('&#x')-5:].split(' ')[1])
                 
             
-            
+            data.append([author,body,utc,id,url,img,board,thread])
         #print(len(page))
         #print()
         if len(page)<100:
             break
+    return(data)
+def helper(board):
+    k=0
+    csv_file=open(board+'.comment.csv','w', encoding="utf-8")
+    writer=csv.writer(csv_file,delimiter=',', lineterminator='\n')
+    file=open(board+'.voat','r').read().split('\n')
+    file=list(set(file))
+    file.sort()
+    print(len(file))
+    for f in file:
+        k=k+1
+        if k%50==0:
+            print(k)
+        if len(f)>0:
+            data=voatScrape(f)
+            for d in data:
+                writer.writerow(d)
         
-voatScrape('https://voat.co/v/news/3036816')    
+#voatScrape('https://voat.co/v/news/3036816')    
 #author body, url,image,id,utc,subreddit,op    
+
+helper('politics')
