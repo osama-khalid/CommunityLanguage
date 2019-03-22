@@ -59,7 +59,7 @@ def voatScrape(link):
     return(data)
 def helper(board):
     k=0
-    csv_file=open(board+'.comment.csv','w', encoding="utf-8")
+    csv_file=open(board+'.voat.comment.csv','w', encoding="utf-8")
     writer=csv.writer(csv_file,delimiter=',', lineterminator='\n')
     file=open(board+'.voat','r').read().split('\n')
     file=list(set(file))
@@ -77,4 +77,4 @@ def helper(board):
 #voatScrape('https://voat.co/v/news/3036816')    
 #author body, url,image,id,utc,subreddit,op    
 
-helper('politics')
+helper('tv')
