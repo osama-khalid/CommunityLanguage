@@ -39,13 +39,14 @@ def getUsers(type):#text=row[22]
                         statUser[row[usrCol]]=0
                     statUser[row[usrCol]]=statUser[row[usrCol]]+1
                     users.append(row[usrCol])
-        numPost=sum(statUser.values())
-        numUsers=len(statUser)
-        maxPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[0][1]
-        medianPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[int(len(statUser)*0.5)][1]
-        upperPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[int(len(statUser)*0.25)][1]
-        lowerPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[int(len(statUser)*0.75)][1]
-        stat.write(type+','+path+','+str(numUsers)+','+str(numPost)+','+str(maxPost)+','+str(medianPost)+','+str(upperPost)+','+str(lowerPost)+','+str(float(numPost)/float(numUsers))+'\n')
+        if len(statUser)>0:
+            numPost=sum(statUser.values())
+            numUsers=len(statUser)
+            maxPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[0][1]
+            medianPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[int(len(statUser)*0.5)][1]
+            upperPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[int(len(statUser)*0.25)][1]
+            lowerPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[int(len(statUser)*0.75)][1]
+            stat.write(type+','+path+','+str(numUsers)+','+str(numPost)+','+str(maxPost)+','+str(medianPost)+','+str(upperPost)+','+str(lowerPost)+','+str(float(numPost)/float(numUsers))+'\n')
     return(set(users))
     
 
