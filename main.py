@@ -1,3 +1,11 @@
+##
+##
+##
+##
+
+##
+## RENAME VARIABLE SPLIT
+
 #d[word.lower()] syllable
 #https://docs.python.org/2/library/urllib.html#urllib.quote_plus        urlunqote
 
