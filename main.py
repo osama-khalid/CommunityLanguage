@@ -360,6 +360,20 @@ class featureCalc(object):
                 posDic[posTuple]=posDic[posTuple]+1
             return(posDic)
             
+def testTrain(i,data):
+    testSet=[]
+    trainSet=[]
+    for j in range(0,len(data)-1):
+        row=data[j].split('|')
+        if i==j:
+        
+            testSet=testSet+row
+        else:
+            
+            trainSet=trainSet+row
+    return(testSet,trainSet)
+    
+    
 #4CHAN
 flag='4chan'
 user=-1
@@ -394,46 +408,35 @@ c=0
 
 allPosts={}
 #text=row[22]
-with open(path,'r', encoding="utf-8") as csvfile:   
-    readCSV = csv.reader(csvfile, delimiter=',')
-    for row in readCSV:    
-        #print(datetime.fromtimestamp(int(row[dateStamp])))
-        c=c+1
-        #if c <100:
-        content=""
-        
-        if flag=='4chan':
-            content=cleaner.chanCleaner(row[text])          #post
-            datekey=cleaner.chanDate(row[dateStamp],split)
-        if flag=='voat':
-            content=cleaner.voatCleaner(row[text])
-            datekey=cleaner.voatDate(row[dateStamp],split)
-        if flag=='reddit':
-            content=cleaner.redditCleaner(row[text])
-            datekey=cleaner.redditDate(row[dateStamp],split)
-        
-        if datekey not in allPosts:
-            allPosts[datekey]=[]
-        allPosts[datekey].append(content)
-        print(datekey)
-        
-        
-        
-        #else:
-        #break
-       
+splits=open(flag+'.split','r').read().split('\n')
+for i in range(0,len(splits)-1):                #K-Fold CrossValidation
+    testSet=[]              
+    trainSet=[]
+    data=testTrain(i,splits)                    #Test-Train Split
+    testSet=data[0]
+    trainSet=data[1]
 
-
-
-
-
-#X='luuuuuvvv'
-
-
-
-
-
-
-
-
-
+    with open(path,'r', encoding="utf-8") as csvfile:   
+        readCSV = csv.reader(csvfile, delimiter=',')
+        for row in readCSV:    
+            
+            c=c+1
+            
+            content=""
+            
+            if flag=='4chan':
+                content=cleaner.chanCleaner(row[text])          #post
+                datekey=cleaner.chanDate(row[dateStamp],split)
+            if flag=='voat':
+                content=cleaner.voatCleaner(row[text])
+                datekey=cleaner.voatDate(row[dateStamp],split)
+            if flag=='reddit':
+                content=cleaner.redditCleaner(row[text])
+                datekey=cleaner.redditDate(row[dateStamp],split)
+            
+            if row[0] not in testSet:
+                #TRAINING
+                #Content has text data, datekey has normalized data
+            if row[0] not in trainSet:
+                #TESTING!
+                #Content has text data, datekey has normalized data
