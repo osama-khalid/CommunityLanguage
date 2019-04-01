@@ -328,6 +328,9 @@ class featureCalc(object):
                 cnt=cnt+1
         return(cnt)
     def specialCharFreq(self,sentence):
+        '''
+        Frequency of Special Characters
+        '''
         specialChar=['~','@','#','$','%','!','^','&','*','(',')','-','_','=','<','+','>','<','[','{','}',']','/','\\','|']
         cnt=0
         for s in specialChar:
@@ -335,6 +338,9 @@ class featureCalc(object):
         return(cnt)
         
     def posNGram(self,sentence,n):      #tokenized sentence
+        '''
+            No. POS NGrams
+        '''
         posDic={}
         if n%2==1:                                  #odd POS
             for i in range(n-n//2-1,len(sentence)-n//2):
@@ -360,6 +366,75 @@ class featureCalc(object):
                 posDic[posTuple]=posDic[posTuple]+1
             return(posDic)
             
+    def charPerSent(self,post):
+        '''
+        Average sentence length in characters
+        '''
+        sentences=preProcess.sentenceTokenize(post)
+        l=0
+        for s in sentences:
+            l=l+len(s)
+        return(float(l)/float(len(sentences)))
+        
+    def whiteSpacePerChar(self,post):
+        '''
+        Total White Space/Total character
+        '''
+        totChar=len(post)
+        totNoSpace=len(post.replace(' ',''))
+        totSpace=totChar-totNoSpace
+        
+        return(float(totSpace)/float(totChar))
+    
+    def digitPerChar(self,post):
+        '''
+        total digits/character
+        '''
+        totChar=len(post)
+        NoDigit=post
+        for i in range(0,10):
+            NoDigit=NoDigit.replace(str(i),'')
+        totNoDigit=len(NoDigit)
+        totDigit=totChar-totNoDigit
+        return(float(totDigit)/float(totChar))
+    
+    def charLen(self,post):
+        return(len(post))
+
+    def tabsPerChar(self,post):
+        '''
+        tabs per character
+        '''
+        totChar=len(post)
+        NoTab=post.replace('\t','')
+        TabLen=totChar-len(NoTab)
+        return(float(TabLen)/tab(totChar))
+        
+    
+    def upperPerChar(self,post):
+        '''
+        No. of upper case/char
+        '''
+        totChar=len(post)
+        NoUpper=post
+        for i in range(65,91):          #ASCII A to Z
+            NoUpper=NoUpper.replace(chr(i),'')
+            
+        totNoUpper=len(NoUpper)
+        Upper=totChar-totNoUpper
+        
+        return(float(Upper)/float(totChar))
+        
+        
+    def alphaCount(self,post):
+        '''
+        No. Alphabets/char
+        '''
+        
+        postNew=post.upper()
+        return(self.upperPerChar(postNew))
+        
+        
 def testTrain(i,data):
     testSet=[]
     trainSet=[]
