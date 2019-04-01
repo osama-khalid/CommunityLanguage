@@ -304,8 +304,11 @@ class preProcess(object):
         return(s)
 
 class featureCalc(object):
-
+    #Basic Features
     def syllableCount(self,word):      #returns count of syllables in word using CMU's dictionary, or none if token isn't a word
+        '''
+        Counts the number of syllable in a given word
+        '''
         word=word.lower()
         if word in CMUdict:
             return(len(CMUdict[word][0]))
@@ -313,6 +316,11 @@ class featureCalc(object):
             return(-1)
         
     def isComplex(self,word):        #Is word Complex
+        '''
+        Returns True if word is complex
+        i.e. syllable count >3
+        
+        '''
         if syllableCount(word) >=3:
             return True
         elif syllableCount(word)<0:
@@ -321,12 +329,20 @@ class featureCalc(object):
             return(False)
 
     def shortWordCount(self,sentence):
+        '''
+        returns the number of short words in sentence
+        
+        '''
+        
         tokens=wordTokenize(sentence)
         cnt=0
         for t in tokens:
             if len(t)<4:
                 cnt=cnt+1
         return(cnt)
+        
+        
+        
     def specialCharFreq(self,sentence):
         '''
         Frequency of Special Characters
@@ -365,7 +381,85 @@ class featureCalc(object):
                     posDic[posTuple]=0
                 posDic[posTuple]=posDic[posTuple]+1
             return(posDic)
+    #Composite Feature
+    ''' SYLLABLES!'''
+    def syllableCountPerWord(self,sentence):
+        '''
+        Breaks Sentence to Word
+        Returns syllable/word
+        
+        '''
+        wordlist=preProcess.wordTokenize(sentence)
+        totWord=0
+        totSyllable=0
+        for w in wordlist:
+            if self.syllableCount(w)>-1:
+                totSyllable+=self.syllableCount(w)
+                totWord+=1
+                
+        return(float(totSyllable),float(totWord))           #Non-Normalized
+
+    def syllablePerPost(self,post):
+        '''
+        Total Number of syllables per post
+        '''
+        syllyCount=self.syllableCountPerWord(post)
+        return(syllyCount[0])
+        
+        
+    def syllableCountPerSent(self,post):
+        '''
+        Average number of syllable per sentence
+        
+        Breaks posts to sentence:
+        Counts total syllables and total words in Sentence
+        returns Syllable Count. Sentence Count
+        '''
+        
+        sentencelist=preProcess.sentenceTokenize(post)
+        totSentence=len(sentencelist)
+        totSyllable=0
+        for s in sentencelist:
+            syllyWord=self.syllableCountPerWord(s)
+            totSyllabe=totSyllabe+syllyWord[0]
             
+        return(float(totSyllable)/float(totSentence))
+        
+    def syllableCountPerWord(self,post):
+        '''
+        Average number of syllables per word
+        '''
+        
+        
+        syllyCount=self.syllableCountPerWord(post)
+        return(syllyCount[0]/syllyCount[1])
+        
+    ''' SHORT WORDS'''
+    
+    def shortPerPost(self,post):
+        '''
+        Average number of short words per sentence
+        '''
+        sentenceList=preProcess.sentenceTokenize(post)
+        totSentence=len(sentenceList)
+        totShorts=0
+        for s in sentenceList:
+            totShorts+=self.shortWordCount(s)
+            
+        return(float(totShorts)/float(totSentence))
+
+
+    def totShortsPerPost(self,post):
+        '''
+        Total Number of shorts in the post
+        '''
+        return(self.shortWordCount(post))
+        
+    '''COMPLEX WORDS   '''
+    
+
+    ''' Characters'''
+    
     def charPerSent(self,post):
         '''
         Average sentence length in characters
@@ -486,10 +580,10 @@ allPosts={}
 splits=open(flag+'.split','r').read().split('\n')
 for i in range(0,len(splits)-1):                #K-Fold CrossValidation
     testSet=[]              
-    trainSet=[]
+    trainSet=[]                                         #Contains the feature calculations for training
     data=testTrain(i,splits)                    #Test-Train Split
-    testSet=data[0]
-    trainSet=data[1]
+    testIDs=data[0]
+    trainIDs=data[1]
 
     with open(path,'r', encoding="utf-8") as csvfile:   
         readCSV = csv.reader(csvfile, delimiter=',')
@@ -502,6 +596,7 @@ for i in range(0,len(splits)-1):                #K-Fold CrossValidation
             if flag=='4chan':
                 content=cleaner.chanCleaner(row[text])          #post
                 datekey=cleaner.chanDate(row[dateStamp],split)
+                id=row[0]
             if flag=='voat':
                 content=cleaner.voatCleaner(row[text])
                 datekey=cleaner.voatDate(row[dateStamp],split)
@@ -509,9 +604,11 @@ for i in range(0,len(splits)-1):                #K-Fold CrossValidation
                 content=cleaner.redditCleaner(row[text])
                 datekey=cleaner.redditDate(row[dateStamp],split)
             
-            if row[0] not in testSet:
+            if row[0] not in testIDs:
                 #TRAINING
+                trainSet.append([id,datekey,])
+                
                 #Content has text data, datekey has normalized data
-            if row[0] not in trainSet:
+            if row[0] not in trainIDs:
                 #TESTING!
                 #Content has text data, datekey has normalized data
