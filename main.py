@@ -11,7 +11,7 @@
 
 #from pycontractions import Contractions         #pip install
 #https://stackoverflow.com/questions/19790188/expanding-english-language-contractions-in-python
-
+from LIWC import liwc
 
 import nltk         #pip install    
 nltk.download('punkt')
@@ -19,7 +19,7 @@ nltk.download('words')
 nltk.download('cmudict')
 nltk.download('averaged_perceptron_tagger')
 import contractions #pip install
-
+from collections import Counter
 from nltk.corpus import words             #check dictionary
 from nltk import pos_tag as posTag
 import emoji #pip install
@@ -33,6 +33,7 @@ from nltk import edit_distance as ed    #check word spelling correction distance
 import urllib.request as urllib         #ud convert url to unicode
 punctuations = RegexpTokenizer(r'\w+')
 from nltk.corpus import cmudict
+import math
 CMUdict = cmudict.dict()      #syllable
 
 class preProcess(object):
@@ -303,8 +304,10 @@ class preProcess(object):
             s=s+" "+p
         return(s)
 
-class featureCalc(object):
+class featureCalc:
     #Basic Features
+    def __init__(self):
+        self.luke=liwc()                        #loading LIWC (pronounced "Luke")
     def syllableCount(self,word):      #returns count of syllables in word using CMU's dictionary, or none if token isn't a word
         '''
         Counts the number of syllable in a given word
@@ -334,7 +337,7 @@ class featureCalc(object):
         
         '''
         
-        tokens=wordTokenize(sentence)
+        tokens=cleaner.wordTokenize(sentence)
         cnt=0
         for t in tokens:
             if len(t)<4:
@@ -353,9 +356,9 @@ class featureCalc(object):
             cnt=cnt+sentence.count(s)
         return(cnt)
         
-    def posNGram(self,sentence,n):      #tokenized sentence
+    def posNGram(self,sentence,n=3):      #tokenized sentence       #sentenceTokenize[1]
         '''
-            No. POS NGrams
+            No. POS NGrams          https://cs.nyu.edu/grishman/jet/guide/PennPOS.html
         '''
         posDic={}
         if n%2==1:                                  #odd POS
@@ -383,31 +386,33 @@ class featureCalc(object):
             return(posDic)
     #Composite Feature
     ''' SYLLABLES!'''
-    def syllableCountPerWord(self,sentence):
+    def syllablePerWord(self,sentence):
         '''
         Breaks Sentence to Word
         Returns syllable/word
         
         '''
-        wordlist=preProcess.wordTokenize(sentence)
-        totWord=0
-        totSyllable=0
-        for w in wordlist:
-            if self.syllableCount(w)>-1:
-                totSyllable+=self.syllableCount(w)
-                totWord+=1
-                
-        return(float(totSyllable),float(totWord))           #Non-Normalized
-
+        wordlist=cleaner.wordTokenize(sentence)
+        if wordlist != None:
+            totWord=0
+            totSyllable=0
+            for w in wordlist:
+                if self.syllableCount(w)>-1:
+                    totSyllable+=self.syllableCount(w)
+                    totWord+=1
+                    
+            return(float(totSyllable),float(totWord))           #Non-Normalized
+        else:
+            return(0,0)
     def syllablePerPost(self,post):
         '''
         Total Number of syllables per post
         '''
-        syllyCount=self.syllableCountPerWord(post)
+        syllyCount=self.syllablePerWord(post)
         return(syllyCount[0])
         
         
-    def syllableCountPerSent(self,post):
+    def syllablePerSent(self,post):
         '''
         Average number of syllable per sentence
         
@@ -416,22 +421,22 @@ class featureCalc(object):
         returns Syllable Count. Sentence Count
         '''
         
-        sentencelist=preProcess.sentenceTokenize(post)
+        sentencelist=cleaner.sentenceTokenize(post)[0]
         totSentence=len(sentencelist)
         totSyllable=0
         for s in sentencelist:
-            syllyWord=self.syllableCountPerWord(s)
-            totSyllabe=totSyllabe+syllyWord[0]
+            syllyWord=self.syllablePerWord(s)
+            totSyllable=totSyllable+syllyWord[0]
             
         return(float(totSyllable)/float(totSentence))
         
-    def syllableCountPerWord(self,post):
+    def avgSyllablePerWord(self,post):
         '''
         Average number of syllables per word
         '''
         
         
-        syllyCount=self.syllableCountPerWord(post)
+        syllyCount=self.syllablePerWord(post)
         return(syllyCount[0]/syllyCount[1])
         
     ''' SHORT WORDS'''
@@ -440,7 +445,7 @@ class featureCalc(object):
         '''
         Average number of short words per sentence
         '''
-        sentenceList=preProcess.sentenceTokenize(post)
+        sentenceList=cleaner.sentenceTokenize(post)[0]
         totSentence=len(sentenceList)
         totShorts=0
         for s in sentenceList:
@@ -464,9 +469,9 @@ class featureCalc(object):
         '''
         Average sentence length in characters
         '''
-        sentences=preProcess.sentenceTokenize(post)
+        sentences=cleaner.sentenceTokenize(post)
         l=0
-        for s in sentences:
+        for s in sentences[0]:
             l=l+len(s)
         return(float(l)/float(len(sentences)))
         
@@ -502,7 +507,7 @@ class featureCalc(object):
         totChar=len(post)
         NoTab=post.replace('\t','')
         TabLen=totChar-len(NoTab)
-        return(float(TabLen)/tab(totChar))
+        return(float(TabLen)/float(totChar))
         
     
     def upperPerChar(self,post):
@@ -527,7 +532,151 @@ class featureCalc(object):
         
         postNew=post.upper()
         return(self.upperPerChar(postNew))
+    
+    
+    def liwcCounter(self,post):
+        words=' '.join(cleaner.wordTokenize(post))
+        return(self.luke.getLIWCCount(words))
+    
         
+    def nounPerSentence(self,post):
+        '''
+        Nouns Per Sentence
+        '''
+        sentenceList=cleaner.sentenceTokenize(post)[1]
+        cnt=0
+        for s in sentenceList:
+            POS=self.posNGram(s,1)
+            for p in POS:
+                if p[0][0]=="N":
+                    cnt=cnt+1
+        return(float(cnt)/float(len(sentenceList)))
+        
+    def verbPerSentence(self,post):
+        '''
+        Verbs Pers Sentence
+        '''
+        sentenceList=cleaner.sentenceTokenize(post)[1]
+        cnt=0
+        for s in sentenceList:
+            POS=self.posNGram(s,1)
+            for p in POS:
+                if p[0][0]=="V":
+                    cnt=cnt+1
+        return(float(cnt)/float(len(sentenceList)))
+        
+    def posPerSentence(self,post):
+        '''
+        Average POS Per Sentence
+        '''
+        sentenceList=cleaner.sentenceTokenize(post)[1]
+        cnt=0
+        for s in sentenceList:
+            POS=self.posNGram(s,1)
+            cnt=cnt+len(POS)
+        return(float(cnt)/float(len(sentenceList)))
+        
+    def nounPerWord(self,post):
+        word=cleaner.wordTokenize(post)
+        POS=self.posNGram(word,1)
+        cnt=0
+        for w in POS:
+            if w[0][0]=="N":
+                cnt=cnt+1
+        return(float(cnt)/float(len(word)))
+    
+    def verbPerWord(self,post):
+        word=cleaner.wordTokenize(post)
+        POS=self.posNGram(word,1)
+        cnt=0
+        for w in POS:
+            if w[0][0]=="V":
+                cnt=cnt+1
+        return(float(cnt)/float(len(word)))
+    def charWords(self,post):
+        '''
+        number of characters in words/number of total characters
+        subtly different from 1-whitespace/char
+        '''
+        totChar=len(post)
+        words=cleaner.wordTokenize(post)
+        wordLen=0
+        for w in words:
+            wordLen=wordLen+len(w)
+        
+        return(float(wordLen)/float(totChar))
+    def sentencePerPost(self,post):
+        '''
+        Total Sentence in post
+        '''
+        return(len(cleaner.sentenceTokenize(post)[1]))
+        
+    def linesPerPost(self,post):
+        lineCount=len(post.split('\n'))
+        return(lineCount)
+  
+    '''   Word Choice    '''
+    def honore(self,post):
+        words=cleaner.wordTokenize(post)
+        unique=Counter(words)
+        num=float(len(words))
+        cnt=0
+        for w in unique:
+            if unique[w]==1:
+                cnt=cnt+1
+        denom=1-(float(cnt)/float(len(unique)))
+        R=100*math.log10(num/denom)
+        return(R)
+     
+    def sichel(self,post):
+        words=cleaner.wordTokenize(post)
+        unique=Counter(words)
+        num=float(len(words))
+        cnt=0
+        for w in unique:
+            if unique[w]==2:
+                cnt=cnt+1
+        
+        S=float(cnt)/float(len(unique))
+        return(S)
+        
+    def brunet(self,post):
+        words=cleaner.wordTokenize(post)
+        a=0.172
+        W= len(words)** (len(set(words)) **a) 
+        return(W)
+    def fleschKincaid(self,post):
+        #206.835 - 1.015(total Words/Total Sentences) -84.6(total Syllable/Total Words)    
+        totSyllable=self.syllablePerPost(post)
+        totWords=float(len(cleaner.wordTokenize(post)))
+        totSentences=float(len(cleaner.sentenceTokenize(post)[0]))
+        FK=206.835 - 1.015*(totWords/totSentences)-84.6*(totSyllable/totWords)
+        return(FK)
+        
+    def hapaxLegomena(self,post):
+        '''
+        unnormalized
+        '''
+        words=cleaner.wordTokenize(post)
+        unique=Counter(words)
+        cnt=0
+        for w in unique:
+            if unique[w]==1:
+                cnt=cnt+1
+        
+        return([cnt,len(words)])
+    def hapaxDislogemna(self,post):
+        '''
+        unnormalized
+        '''
+        words=cleaner.wordTokenize(post)
+        unique=Counter(words)
+        cnt=0
+        for w in unique:
+            if unique[w]==2:
+                cnt=cnt+1
+        
+        return([cnt,len(words)])
         
 def testTrain(i,data):
     testSet=[]
@@ -566,18 +715,18 @@ dateStamp=2
 c=0
 
 cleaner=preProcess()
-stater=featureCalc()
-path="askreddit_4.comment.csv"
+
+path="politics_2.reddit.comment.csv"
 
 text=1
 user=0
 flag='reddit'
 dateStamp=5
 c=0
-
+features=featureCalc()
 allPosts={}
 #text=row[22]
-splits=open(flag+'.split','r').read().split('\n')
+splits=open(flag+'.split','r', encoding='utf-8').read().split('\n')
 for i in range(0,len(splits)-1):                #K-Fold CrossValidation
     testSet=[]              
     trainSet=[]                                         #Contains the feature calculations for training
@@ -606,9 +755,12 @@ for i in range(0,len(splits)-1):                #K-Fold CrossValidation
             
             if row[0] not in testIDs:
                 #TRAINING
-                trainSet.append([id,datekey,])
-                
+                trainSet.append([id,datekey,features.upperPerChar(content)])
+                print([id,datekey,features.upperPerChar(content)],"TRAIN")
                 #Content has text data, datekey has normalized data
+                
             if row[0] not in trainIDs:
                 #TESTING!
+                testSet.append([id,datekey,features.upperPerChar(content)])
+                print([id,datekey,features.upperPerChar(content)],"TEST")
                 #Content has text data, datekey has normalized data
