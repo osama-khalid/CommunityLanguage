@@ -18,6 +18,7 @@ def getUsers(type):#text=row[22]
         usrCol=0
         for f in files:
             if f.find('.csv_20')>-1:
+
                 paths.append(f)
         
     if type=='reddit':
@@ -31,15 +32,18 @@ def getUsers(type):#text=row[22]
     
     for path in paths:
         statUser={}
+        x=0
         with open(path,'r', encoding="utf-8") as csvfile:   
             readCSV = csv.reader(csvfile, delimiter=',')
             for row in readCSV:
+                x=x+1
                 if len(row)>0:
                     if row[usrCol] not in statUser:
                         statUser[row[usrCol]]=0
                     statUser[row[usrCol]]=statUser[row[usrCol]]+1
                     users.append(row[usrCol])
-        if len(statUser)>0:
+        if x>10:
+            print(path)
             numPost=sum(statUser.values())
             numUsers=len(statUser)
             maxPost=sorted(statUser.items(),key=operator.itemgetter(1),reverse=True)[0][1]
@@ -50,7 +54,7 @@ def getUsers(type):#text=row[22]
     return(set(users))
     
 
-def testTrainSplit(users,type,n=10):
+def testTrainSplit(users,type,n=3):
     splits=[]
     users=list(set(users))
     shuffle(users)
@@ -66,11 +70,11 @@ def testTrainSplit(users,type,n=10):
     '''    
     #print(len(users))
     if type == 'reddit':
-        file=open('reddit.split','w')
+        file=open('reddit.split','w', encoding="utf-8")
     if type == 'voat':
-        file=open('voat.split','w')
+        file=open('voat.split','w', encoding="utf-8")
     if type=='4chan':
-        file=open('4chan.split','w')
+        file=open('4chan.split','w', encoding="utf-8")
     for s in splits:
         file.write('|'.join(s)+'\n')
     file.close()
@@ -80,9 +84,14 @@ type='voat'
 users=getUsers(type)
 testTrainSplit(users,type)
 '''
+type='reddit'
+users=getUsers(type)
+testTrainSplit(users,type)
+
 type='voat'
 users=getUsers(type)
 testTrainSplit(users,type)
+
 
 type='4chan'
 users=getUsers(type)
