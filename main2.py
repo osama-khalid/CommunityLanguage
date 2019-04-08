@@ -742,7 +742,8 @@ for i in range(0,3):        #Cross Validation          <----------------------
     #i=0
     featTest=[]
     featTrain=[]
-
+    fTest=open('test.'+str(i),'w')
+    fTrain=open('train.'+str(i),'w')
     for p in files:
         print(p)
         #pDocs={}            #Pseudo documents    
@@ -792,13 +793,13 @@ for i in range(0,3):        #Cross Validation          <----------------------
             for l in test[t]:
                 content=test[t][l]
                 label=l.split('.')
-                featTest.append([label[1]+'.'+label[2],features.upperPerChar(content),features.verbPerSentence(content)])
+                featTest.append([label[1]+'.'+label[2],features.upperPerChar(content),features.verbPerSentence(content)])           #<--------------------Add Features
 
         for t in train:
             for l in train[t]:
                 content=train[t][l]
                 label=l.split('.')
-                featTrain.append([label[1]+'.'+label[2],features.upperPerChar(content),features.verbPerSentence(content)])
+                featTrain.append([label[1]+'.'+label[2],features.upperPerChar(content),features.verbPerSentence(content)])           #<--------------------Add Features
 
     from sklearn.ensemble import RandomForestRegressor
     trainSet=[]
@@ -809,10 +810,15 @@ for i in range(0,3):        #Cross Validation          <----------------------
 
     labelMap={}
     invLabelMap={}
-
-    rf = RandomForestRegressor(n_estimators = 1000, random_state = 42)
+    
+    rf = RandomForestRegressor(n_estimators = 1000, random_state = 42)                 #<--------------------Change Model
     j=0
     for t in featTrain:
+        temp=[]
+        for p in t:
+            temp.append(str(p))
+        fTrain.write(','.join(temp)+'\n')
+        
         trainSet.append(np.array(t[1:]))
         if t[0] not in labelMap:
             labelMap[t[0]]=j
@@ -822,13 +828,18 @@ for i in range(0,3):        #Cross Validation          <----------------------
         
         
     for t in featTest:
+        temp=[]
+        for p in t:
+            temp.append(str(p))
+        fTest.write(','.join(temp)+'\n')
         if t[0] not in labelMap:
             labelMap[t[0]]=j
             invLabelMap[j]=[t[0]]
             j=j+1
         testSet.append(np.array(t[1:]))
         testLabel.append(labelMap[t[0]])
-        
+    fTest.close()
+    fTrain.close()
     rf.fit(trainSet, trainLabel)    
     predictions(rf.predict(trainSet))
     errors = abs(predictions - testLabel)
