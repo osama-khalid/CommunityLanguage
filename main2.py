@@ -18,6 +18,7 @@ import nltk         #pip install
 nltk.download('punkt')
 nltk.download('words')
 nltk.download('cmudict')
+
 import os
 import html
 nltk.download('averaged_perceptron_tagger')
@@ -736,7 +737,7 @@ for s in social:
             files.append(p)
 
 
-
+from sklearn.ensemble import RandomForestClassifier 
 
 for i in range(0,3):        #Cross Validation          <----------------------
     #i=0
@@ -811,7 +812,7 @@ for i in range(0,3):        #Cross Validation          <----------------------
     labelMap={}
     invLabelMap={}
     
-    rf = RandomForestRegressor(n_estimators = 1000, random_state = 42)                 #<--------------------Change Model
+    rf = RandomForestClassifier(n_jobs=20, random_state=0)               #<--------------------Change Model
     j=0
     for t in featTrain:
         temp=[]
@@ -841,6 +842,6 @@ for i in range(0,3):        #Cross Validation          <----------------------
     fTest.close()
     fTrain.close()
     rf.fit(trainSet, trainLabel)    
-    predictions(rf.predict(trainSet))
-    errors = abs(predictions - testLabel)
-    print(round(np.mean(errors), 2))
+    predictions=rf.predict(testSet)                                                 
+    accuracy = 1-sum(np.array(testLabel)^predictions)/len(predictions)          #<-XORs testLabel and Predicted Labels
+    print(accuracy)
