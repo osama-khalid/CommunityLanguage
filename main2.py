@@ -738,6 +738,10 @@ for s in social:
 
 
 from sklearn.ensemble import RandomForestClassifier 
+from sklearn import svm        
+from sklearn import linear_model
+from sklearn.cluster import KMeans 
+
 
 for i in range(0,3):        #Cross Validation          <----------------------
     #i=0
@@ -813,6 +817,8 @@ for i in range(0,3):        #Cross Validation          <----------------------
     invLabelMap={}
     
     rf = RandomForestClassifier(n_jobs=20, random_state=0)               #<--------------------Change Model
+    #rf=linear_model.LogisticRegression(C=1e5)				#Logistic Regression
+    #rf=svm.SVC()										#SVM
     j=0
     for t in featTrain:
         temp=[]
