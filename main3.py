@@ -316,6 +316,8 @@ class featureCalc:
         '''
         Counts the number of syllable in a given word
         '''
+        if word==-1:
+            return('syllabeCount')
         word=word.lower()
         if word in CMUdict:
             return(len(CMUdict[word][0]))
@@ -328,6 +330,8 @@ class featureCalc:
         i.e. syllable count >3
         
         '''
+        if word==-1:
+            return('isComplex')
         if syllableCount(word) >=3:
             return True
         elif syllableCount(word)<0:
@@ -340,7 +344,8 @@ class featureCalc:
         returns the number of short words in sentence
         
         '''
-        
+        if word==-1:
+            return('shortWordCount')
         tokens=cleaner.wordTokenize(sentence)
         cnt=0
         for t in tokens:
@@ -354,6 +359,8 @@ class featureCalc:
         '''
         Frequency of Special Characters
         '''
+        if sentence==-1:
+            return('specialCharFreq')
         specialChar=['~','@','#','$','%','!','^','&','*','(',')','-','_','=','<','+','>','<','[','{','}',']','/','\\','|']
         cnt=0
         for s in specialChar:
@@ -396,6 +403,8 @@ class featureCalc:
         Returns syllable/word
         
         '''
+        if sentence==-1:
+            return('syllabePerCount')
         wordlist=cleaner.wordTokenize(sentence)
         if wordlist != None:
             totWord=0
@@ -412,6 +421,8 @@ class featureCalc:
         '''
         Total Number of syllables per post
         '''
+        if post==-1:
+            return('syllabePerPost')
         syllyCount=self.syllablePerWord(post)
         return(syllyCount[0])
         
@@ -424,7 +435,8 @@ class featureCalc:
         Counts total syllables and total words in Sentence
         returns Syllable Count. Sentence Count
         '''
-        
+        if post==-1:
+            return('syllabePerSentence')
         sentencelist=cleaner.sentenceTokenize(post)[0]
         totSentence=len(sentencelist)
         totSyllable=0
@@ -438,7 +450,8 @@ class featureCalc:
         '''
         Average number of syllables per word
         '''
-        
+        if post==-1:
+            return('avgSyllablePerWord')
         
         syllyCount=self.syllablePerWord(post)
         return(syllyCount[0]/syllyCount[1])
@@ -449,6 +462,8 @@ class featureCalc:
         '''
         Average number of short words per sentence
         '''
+        if post==-1:
+            return('shortPerPost')
         sentenceList=cleaner.sentenceTokenize(post)[0]
         totSentence=len(sentenceList)
         totShorts=0
@@ -462,6 +477,8 @@ class featureCalc:
         '''
         Total Number of shorts in the post
         '''
+        if post==-1:
+            return('totShortsPerPost')
         return(self.shortWordCount(post))
         
     '''COMPLEX WORDS   '''
@@ -473,6 +490,8 @@ class featureCalc:
         '''
         Average sentence length in characters
         '''
+        if post==-1:
+            return('charPerSent')
         sentences=cleaner.sentenceTokenize(post)
         l=0
         for s in sentences[0]:
@@ -483,6 +502,8 @@ class featureCalc:
         '''
         Total White Space/Total character
         '''
+        if post==-1:
+            return('whiteSpacePerChar')
         totChar=len(post)
         totNoSpace=len(post.replace(' ',''))
         totSpace=totChar-totNoSpace
@@ -493,6 +514,8 @@ class featureCalc:
         '''
         total digits/character
         '''
+        if post==-1:
+            return('digitPerChar')
         totChar=len(post)
         NoDigit=post
         for i in range(0,10):
@@ -502,12 +525,16 @@ class featureCalc:
         return(float(totDigit)/float(totChar))
     
     def charLen(self,post):
+        if post==-1:
+            return('charLen')
         return(len(post))
 
     def tabsPerChar(self,post):
         '''
         tabs per character
         '''
+        if post==-1:
+            return('tabsPerCount')
         totChar=len(post)
         NoTab=post.replace('\t','')
         TabLen=totChar-len(NoTab)
@@ -518,6 +545,8 @@ class featureCalc:
         '''
         No. of upper case/char
         '''
+        if post==-1:
+            return('upperPerChar')
         totChar=len(post)
         NoUpper=post
         for i in range(65,91):          #ASCII A to Z
@@ -533,20 +562,33 @@ class featureCalc:
         '''
         No. Alphabets/char
         '''
-        
+        if post==-1:
+            return('alphabet Count')
+        if post==-1:
+            return('alphaPerCount')
         postNew=post.upper()
         return(self.upperPerChar(postNew))
     
     
     def liwcCounter(self,post):
+        keys=list(self.luke.getLIWCCount("").keys())
+        keys.sort()
+        
+        if post==-1:
+            return(','.join(keys))
+            
         words=' '.join(cleaner.wordTokenize(post))
-        return(self.luke.getLIWCCount(words))
+        liwc=self.luke.getLIWCCount(words)
+        liwcScore=[liwc[k] for k in keys]
+        return(liwcScore)
     
         
     def nounPerSentence(self,post):
         '''
         Nouns Per Sentence
         '''
+        if post==-1:
+            return('nounsPerSentence')
         sentenceList=cleaner.sentenceTokenize(post)[1]
         cnt=0
         for s in sentenceList:
@@ -560,6 +602,8 @@ class featureCalc:
         '''
         Verbs Pers Sentence
         '''
+        if post==-1:
+            return('verbPerSentence')
         sentenceList=cleaner.sentenceTokenize(post)[1]
         cnt=0
         for s in sentenceList:
@@ -573,6 +617,8 @@ class featureCalc:
         '''
         Average POS Per Sentence
         '''
+        if post==-1:
+            return('posPerSentence')
         sentenceList=cleaner.sentenceTokenize(post)[1]
         cnt=0
         for s in sentenceList:
@@ -581,6 +627,8 @@ class featureCalc:
         return(float(cnt)/float(len(sentenceList)))
         
     def nounPerWord(self,post):
+        if post==-1:
+            return('nounsPerWord')
         word=cleaner.wordTokenize(post)
         POS=self.posNGram(word,1)
         cnt=0
@@ -590,6 +638,8 @@ class featureCalc:
         return(float(cnt)/float(len(word)))
     
     def verbPerWord(self,post):
+        if post==-1:
+            return('verbsPerSentence')
         word=cleaner.wordTokenize(post)
         POS=self.posNGram(word,1)
         cnt=0
@@ -602,6 +652,8 @@ class featureCalc:
         number of characters in words/number of total characters
         subtly different from 1-whitespace/char
         '''
+        if post==-1:
+            return('charWords')
         totChar=len(post)
         words=cleaner.wordTokenize(post)
         wordLen=0
@@ -613,6 +665,8 @@ class featureCalc:
         '''
         Total Sentence in post
         '''
+        if post==-1:
+            return('sentencePerPost')
         return(len(cleaner.sentenceTokenize(post)[1]))
         
     def linesPerPost(self,post):
@@ -621,6 +675,8 @@ class featureCalc:
   
     '''   Word Choice    '''
     def honore(self,post):
+        if post==-1:
+            return('honore Score')
         words=cleaner.wordTokenize(post)
         unique=Counter(words)
         num=float(len(words))
@@ -633,6 +689,8 @@ class featureCalc:
         return(R)
      
     def sichel(self,post):
+        if post==-1:
+            return('Sichel Score')
         words=cleaner.wordTokenize(post)
         unique=Counter(words)
         num=float(len(words))
@@ -645,11 +703,15 @@ class featureCalc:
         return(S)
         
     def brunet(self,post):
+        if post==-1:
+            return('brunet Score')
         words=cleaner.wordTokenize(post)
         a=0.172
         W= len(words)** (len(set(words)) **a) 
         return(W)
     def fleschKincaid(self,post):
+        if post==-1:
+            return('fleschKincaid Score')
         #206.835 - 1.015(total Words/Total Sentences) -84.6(total Syllable/Total Words)    
         totSyllable=self.syllablePerPost(post)
         totWords=float(len(cleaner.wordTokenize(post)))
@@ -661,6 +723,8 @@ class featureCalc:
         '''
         unnormalized
         '''
+        if post==-1:
+            return('hapax Legomena')
         words=cleaner.wordTokenize(post)
         unique=Counter(words)
         cnt=0
@@ -673,6 +737,8 @@ class featureCalc:
         '''
         unnormalized
         '''
+        if post==-1:
+            return('hapax Dislogemna')
         words=cleaner.wordTokenize(post)
         unique=Counter(words)
         cnt=0
@@ -749,6 +815,8 @@ for i in range(0,3):        #Cross Validation          <----------------------
     featTrain=[]
     fTest=open('test.'+str(i),'w')
     fTrain=open('train.'+str(i),'w')
+    header='media'+'.'+'board'+','+features.upperPerChar(-1)+','+features.verbPerSentence(-1)+','+features.liwcCounter(-1)
+    
     for p in files:
         print(p)
         #pDocs={}            #Pseudo documents    
@@ -798,14 +866,25 @@ for i in range(0,3):        #Cross Validation          <----------------------
             for l in test[t]:
                 content=test[t][l]
                 label=l.split('.')
-                featTest.append([label[1]+'.'+label[2],features.upperPerChar(content),features.verbPerSentence(content)])           #<--------------------Add Features
-
+                temp=[]
+                temp.append(label[1]+'.'+label[2])
+                temp.append(features.upperPerChar(content))
+                temp.append(features.verbPerSentence(content))
+                temp.extend(features.liwcCounter(content))           #<--------------------Add Features
+                
+                featTest.append(temp)
+                
         for t in train:
             for l in train[t]:
                 content=train[t][l]
                 label=l.split('.')
-                featTrain.append([label[1]+'.'+label[2],features.upperPerChar(content),features.verbPerSentence(content)])           #<--------------------Add Features
-
+                temp=[]
+                temp.append(label[1]+'.'+label[2])
+                temp.append(features.upperPerChar(content))
+                temp.append(features.verbPerSentence(content))
+                temp.extend(features.liwcCounter(content))           #<--------------------Add Features
+                
+                featTrain.append(temp)
     from sklearn.ensemble import RandomForestRegressor
     trainSet=[]
     trainLabel=[]
@@ -820,6 +899,8 @@ for i in range(0,3):        #Cross Validation          <----------------------
     #rf=linear_model.LogisticRegression(C=1e5)				#Logistic Regression
     #rf=svm.SVC()										#SVM
     j=0
+    fTrain.write(header+'\n')
+    fTest.write(header+'\n')
     for t in featTrain:
         temp=[]
         for p in t:
