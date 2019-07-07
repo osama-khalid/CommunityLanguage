@@ -413,7 +413,245 @@ class charAggr:
         return(len(post)-len(NoPunc))
     def _charWord(self,post,cleaner):
         return(len(''.join(cleaner.wordTokenize(post))))
+
+class wordPreProcess:
+    def wordCount(self,post,cleaner):
+        sentenceBreak=cleaner.sentenceTokenize(post.lower())        #?
+        wordCollection=cleaner.wordTokenize(cleaner.postFlatten(cleaner.sentenceTokenize(post.lower())[0]))
+        wC=dict(Counter(wordCollection))
+        wC['_sentence']=len(sentenceBreak[0])
+        wC['_post']=1
+        return(wC)
+        #return({'_words':dict(Counter(wordCollection)),'_sentence':len(sentenceBreak[0]),'_post':1})
+    
+class LIWCPreProcess:
+    def liwcCount(self,post,cleaner):
+        words=' '.join(cleaner.wordTokenize(post))
         
+        
+        return(liwc().getLIWCCount(words))
+class wordFeatures:
+    def __init__(wordDict):
+        syllables=self._syllable(wordDict)
+        syllableCount=syllables[0]
+        syllableWords=syllables[1]
+        shortWordCount=self._shortWord(wordDict)
+        
+    def syllableCount(self,word):      #returns count of syllables in word using CMU's dictionary, or none if token isn't a word
+        '''
+        Counts the number of syllable in a given word
+        '''
+        if word==-1:
+            return('syllabeCount')
+        word=word.lower()
+        if word in CMUdict:
+            return(len(CMUdict[word][0]))
+        else:
+            return(-1)
+        
+    def isComplex(self,word):        #Is word Complex
+        '''
+        Returns True if word is complex
+        i.e. syllable count >3
+        
+        '''
+        if word==-1:
+            return('isComplex')
+        if syllableCount(word) >=3:
+            return True
+        elif syllableCount(word)<0:
+            return(None)
+        else:
+            return(False)
+        
+        
+    def _syllable(self,wordDict):
+        wordList=wordDict.keys()
+        syllableCount={}
+        for w in wordList:
+            if w !='_post' and w!='_sentence':
+                cnt=self.syllableCount(w)
+                if cnt>-1:
+                    syllableCount[w]=cnt
+        for s in syllableCount:
+            syllableCount[s]=syllableCount[s]*wordDict[s]
+            
+        return(sum(syllableCount.values()),sum(wordDict.values()))
+    
+    def _shortWord(self,wordDict):
+        wordList=wordDict.keys()
+        shortWordCount={}
+        for w in wordList:
+            if w!='_post' and w!='_sentence':
+                if len(w)<4:
+                    shortWordCount[w]=wordDict[w]
+        return(sum(shortWordCount.values()))            
+    
+    
+    def _honore(self,wordDict):
+        singles=0
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                if wordDict[w]==1:
+                    singles=singles+1
+        R=100*math.log10(sum(wordDict.values())-wordDict['_post']-wordDict['_sentence'])/(1-(singles/(len(wordDict)-2)))
+        return(R)
+    def _sichel(self,wordDict):
+        doubles=0
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                if wordDict[w]==2:
+                    doubles=doubles+1
+        S=doubles/(len(wordDict)-2)
+        return(S)
+    def _brunet(self,wordDict):
+        W=(sum(wordDict.values())-wordDict['_post']-wordDict['_sentence'])**((len(wordDict)-2)-0.17)
+    #def yule(self,wordDict):
+        
+    def _fleschKincaid(self,wordDict,syllableCount):
+        totSyllable=syllableCount
+        totWords=sum(wordDict.values())-wordDict['_post']-wordDict['_sentence']
+        totSentences=wordDict['_sentence']
+        FK=206.835-1.015*(totWords/totSentences)-84.6*(totSyllable/totWords)
+        
+    def _hapaxDislegomena(self,wordDict):
+        count=0
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                if wordDict[w]==2:
+                    count=count+1
+        return(count)
+    
+    def _hapaxLegomena(self,wordDict)
+        count=0
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                if wordDict[w]==1:
+                    count=count+1
+        return(count)     
+    def _gunningFog(self,wordDict):
+        sentences=wordDict['_sentence']
+        words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
+        complexWords=0
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                if self.isComplex(w)==True:
+                    complexWords=complexWords+wordDict[w]
+                    
+        gunningFog=0.4*((words/sentences)+100*(complexWords/words))
+        return(gunningFog)
+    def ARI(self,wordDict):
+        #Automated Readability Index
+        char=0
+        sentences=wordDict['_sentence']
+        words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                char=char+len(w)*wordDict[w]
+                
+        ARI=4.71*(char/words)+0.5(words/sentences)-21.43
+        return(ARI)
+        
+    def DaleChallReadability(self,wordDict):
+        sentences=wordDict['_sentence']
+        words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
+        complexWords=0
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                if self.isComplex(w)==True:
+                    complexWords=complexWords+wordDict[w]
+                    
+        DCR=0.1579*(100*(complexWords/words))+0.0496*(words/sentences)
+        return(DCR)
+    def SMOG(self,wordDict):
+        sentences=wordDict['_sentence']
+        words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
+        complexWords=0
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                if self.isComplex(w)==True:
+                    complexWords=complexWords+wordDict[w]
+        smog=1.0430*math.sqrt(complexWords*(30/sentences))+3.1291
+        return(smog)
+    def simpson(self,wordDict):
+        words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
+        denom=words*(words-1)
+        numer=0
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                numer=numer+wordDict[w]*(wordDict[w]-1)
+                
+        D=1-(numer/denom)
+        return(D)
+    def CLI(self,wordDict):
+        char=0
+        sentences=wordDict['_sentence']
+        words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
+        for w in wordDict:
+            if w!='_post' and w!='_sentence':
+                char=char+len(w)*wordDict[w]
+        L=100*char/word
+        S=100*sentence/words
+        CLI=0.0588*L-0.296*S-15.8
+        return(CLI)
+    
+class neologism
+    def OOV100():
+    def OOV500():
+    def OOV200():
+    def UB100():
+    def UB500():
+    def UB200():
+        
+class posAggr:
+    
+    def posNGram(self,sentence,n=3):      #tokenized sentence       #sentenceTokenize[1]
+        '''
+            No. POS NGrams          https://cs.nyu.edu/grishman/jet/guide/PennPOS.html
+        '''
+        posDic={}
+        if n%2==1:                                  #odd POS
+            for i in range(n-n//2-1,len(sentence)-n//2):
+                posTuple=[]
+                POS=posTag(sentence[i-n//2:i+n//2+1])
+                for p in POS:
+                    posTuple.append(p[1])
+                posTuple=tuple(posTuple)
+                if posTuple not in posDic:
+                    posDic[posTuple]=0
+                posDic[posTuple]=posDic[posTuple]+1
+            return(posDic)
+            
+        else:                                           #even POS
+            for i in range(len(sentence)-n+1):
+                posTuple=[]
+                POS=posTag(sentence[i:i+n])
+                for p in POS:
+                    posTuple.append(p[1])
+                posTuple=tuple(posTuple)
+                if posTuple not in posDic:
+                    posDic[posTuple]=0
+                posDic[posTuple]=posDic[posTuple]+1
+            return(posDic)
+    
+    def stats(self,post,cleaner):
+        sentences=cleaner.sentenceTokenize(post)[1]
+        trigram={}
+        unigram={}
+        for item in sentences:
+            tempDictionary=self.posNGram(item)
+            for t in tempDictionary:
+                if t not in trigram:
+                    trigram[t]=0
+                trigram[t]=trigram[t]+tempDictionary[t]
+                
+            tempDictionary=self.posNGram(item,1)
+            for t in tempDictionary:
+                if t not in unigram:
+                    unigram[t]=0
+                unigram[t]=unigram[t]+tempDictionary[t]
+            
+        return({**trigram,**unigram})
 cleaner=preProcess()
 
 
@@ -435,6 +673,7 @@ for p in files:
     wordStat=[]
     posStat=[]
     charStat=[]
+    liwcStat=[]
     #with open('./'+type+'/'+p,'r', encoding="utf-8") as csvfile:
     with open(p,'r',encoding='utf-8') as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
@@ -449,7 +688,33 @@ for p in files:
             #wordCollection.append(wordPreprocess(content))
             A=charAggr(content,cleaner)
             charStat.append(A.stats)
+            
+            wordCollection.append(wordPreProcess().wordCount(content,cleaner))
+            
+            posStat.append(posAggr().stats(content,cleaner))
+            liwcStat.append(LIWCPreProcess().liwcCount(content,cleaner))
+            
             #posAggr(content)
             #posStat.append(posAggr.stats)
             
-    print(charStat)         
+    wordSum={}
+    charFeat={}
+    liwcFeat={}
+    posFeat={}
+    for item in wordCollection:
+        for w in item:
+            if w not in wordSum:
+                wordSum[w]=0
+            wordSum[w]=wordSum[w]+item[w]
+            
+    for item in charStat:
+        for w in item:
+            if w not in charFeat:
+                charFeat[w]=0
+            charFeat[w]=charFeat[w]+item[w]
+            
+    for item in liwcStat:
+        for w in item:
+            if w not in liwcFeat:
+                liwcFeat[w]=0
+            liwcFeat[w]=liwcFeat[w]+item[w]
