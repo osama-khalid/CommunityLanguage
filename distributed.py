@@ -171,7 +171,11 @@ class preProcess(object):
             return(False)
         return(True)
     
-
+    def wordUB(self,word):
+        if word not in words.words() and word in self.ud:
+            return(True)
+        else:
+            return(False)
     def spellCheck(self,word):
         '''
         returns True if spelling error
@@ -595,14 +599,63 @@ class wordFeatures:
         CLI=0.0588*L-0.296*S-15.8
         return(CLI)
     
-class neologism
-    def OOV100():
-    def OOV500():
-    def OOV200():
-    def UB100():
-    def UB500():
-    def UB200():
+class neologism:
+    def __init__(self,wordDict,cleaner):
+        self.cleaner=cleaner
         
+    def OOV100(self,wordDict):
+        oovs=0
+        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:100]
+        for w in tf:
+            if self.cleaner.wordOOV(w[0]) == True:
+                oovs=oovs+1
+        return(oovs)
+        
+    def OOV500(self,wordDict):
+        oovs=0
+        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:500]
+        for w in tf:
+            if self.cleaner.wordOOV(w[0]) == True:
+                oovs=oovs+1
+        return(oovs)
+    def OOV200(self,wordDict):
+        oovs=0
+        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:200]
+        for w in tf:
+            if self.cleaner.wordOOV(w[0]) == True:
+                oovs=oovs+1
+        return(oovs)        
+    def UB100(self,wordDict):
+        ubs=0
+        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:100]
+        for w in tf:
+            if self.cleaner.wordUB(w[0]) == True:
+                oovs=oovs+1
+        return(oovs)
+    def UB500(self,wordDict):
+        ubs=0
+        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:500]
+        for w in tf:
+            if self.cleaner.wordUB(w[0]) == True:
+                oovs=oovs+1
+        return(oovs)        
+    def UB200(self,wordDict):
+        ubs=0
+        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:200]
+        for w in tf:
+            if self.cleaner.wordUB(w[0]) == True:
+                oovs=oovs+1
+        return(oovs)        
+    
+    def OOVfreq(self,wordDict):
+        oovFreq=0
+        words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
+        for w in wordDict:
+            if w !='_sentence' and w!='_post':
+                if self.cleaner.wordOOV(w)==True:
+                    oovFreq=oovFreq+wordDict[w]
+        return(oovFreq/float(words))
+                
 class posAggr:
     
     def posNGram(self,sentence,n=3):      #tokenized sentence       #sentenceTokenize[1]
