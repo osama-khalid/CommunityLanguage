@@ -5,7 +5,7 @@
 #https://stackoverflow.com/questions/19790188/expanding-english-language-contractions-in-python
 
 from LIWC import liwc
-
+import operator
 import sklearn
 import numpy as np
 import nltk         #pip install    
@@ -435,12 +435,12 @@ class LIWCPreProcess:
         
         return(liwc().getLIWCCount(words))
 class wordFeatures:
-    def __init__(wordDict):
-        syllables=self._syllable(wordDict)
-        syllableCount=syllables[0]
-        syllableWords=syllables[1]
-        shortWordCount=self._shortWord(wordDict)
-        
+    def __init__(self,wordDict):
+        self._syllables=self._syllable(wordDict)
+        self._syllableCount=self._syllables[0]
+        self._syllableWords=self._syllables[1]
+        self._shortWordCount=self._shortWord(wordDict)
+      
     def syllableCount(self,word):      #returns count of syllables in word using CMU's dictionary, or none if token isn't a word
         '''
         Counts the number of syllable in a given word
@@ -461,9 +461,9 @@ class wordFeatures:
         '''
         if word==-1:
             return('isComplex')
-        if syllableCount(word) >=3:
+        if self.syllableCount(word) >=3:
             return True
-        elif syllableCount(word)<0:
+        elif self.syllableCount(word)<0:
             return(None)
         else:
             return(False)
@@ -508,15 +508,19 @@ class wordFeatures:
                     doubles=doubles+1
         S=doubles/(len(wordDict)-2)
         return(S)
+    '''
+    Numerical OverFlow
     def _brunet(self,wordDict):
         W=(sum(wordDict.values())-wordDict['_post']-wordDict['_sentence'])**((len(wordDict)-2)-0.17)
+    '''
     #def yule(self,wordDict):
         
-    def _fleschKincaid(self,wordDict,syllableCount):
-        totSyllable=syllableCount
+    def _fleschKincaid(self,wordDict):        #Flesch Kincaid is negative?
+        totSyllable=self._syllableCount
         totWords=sum(wordDict.values())-wordDict['_post']-wordDict['_sentence']
         totSentences=wordDict['_sentence']
         FK=206.835-1.015*(totWords/totSentences)-84.6*(totSyllable/totWords)
+        return(FK)
         
     def _hapaxDislegomena(self,wordDict):
         count=0
@@ -526,7 +530,7 @@ class wordFeatures:
                     count=count+1
         return(count)
     
-    def _hapaxLegomena(self,wordDict)
+    def _hapaxLegomena(self,wordDict):
         count=0
         for w in wordDict:
             if w!='_post' and w!='_sentence':
@@ -539,12 +543,13 @@ class wordFeatures:
         complexWords=0
         for w in wordDict:
             if w!='_post' and w!='_sentence':
+                
                 if self.isComplex(w)==True:
                     complexWords=complexWords+wordDict[w]
                     
         gunningFog=0.4*((words/sentences)+100*(complexWords/words))
         return(gunningFog)
-    def ARI(self,wordDict):
+    def _ARI(self,wordDict):
         #Automated Readability Index
         char=0
         sentences=wordDict['_sentence']
@@ -552,11 +557,14 @@ class wordFeatures:
         for w in wordDict:
             if w!='_post' and w!='_sentence':
                 char=char+len(w)*wordDict[w]
-                
-        ARI=4.71*(char/words)+0.5(words/sentences)-21.43
+        #print(char,words,sentences)        
+        ARI=4.71*(float(char)/float(words))+0.5*(words/sentences)-21.43
         return(ARI)
         
-    def DaleChallReadability(self,wordDict):
+    def _DCR(self,wordDict):
+        '''
+        DaleChallReadability
+        '''
         sentences=wordDict['_sentence']
         words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
         complexWords=0
@@ -567,7 +575,7 @@ class wordFeatures:
                     
         DCR=0.1579*(100*(complexWords/words))+0.0496*(words/sentences)
         return(DCR)
-    def SMOG(self,wordDict):
+    def _SMOG(self,wordDict):
         sentences=wordDict['_sentence']
         words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
         complexWords=0
@@ -577,7 +585,7 @@ class wordFeatures:
                     complexWords=complexWords+wordDict[w]
         smog=1.0430*math.sqrt(complexWords*(30/sentences))+3.1291
         return(smog)
-    def simpson(self,wordDict):
+    def _simpson(self,wordDict):
         words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
         denom=words*(words-1)
         numer=0
@@ -587,65 +595,75 @@ class wordFeatures:
                 
         D=1-(numer/denom)
         return(D)
-    def CLI(self,wordDict):
+    def _CLI(self,wordDict):
         char=0
         sentences=wordDict['_sentence']
         words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
         for w in wordDict:
             if w!='_post' and w!='_sentence':
                 char=char+len(w)*wordDict[w]
-        L=100*char/word
-        S=100*sentence/words
+        L=100*char/words
+        S=100*sentences/words
         CLI=0.0588*L-0.296*S-15.8
         return(CLI)
     
-class neologism:
+class neologism:    
+    #What to do with Punctuations? "that's"
     def __init__(self,wordDict,cleaner):
         self.cleaner=cleaner
+        wordDict['_sentence']=0
+        wordDict['_post']=0
+        self.tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)
         
-    def OOV100(self,wordDict):
+    def OOV100(self):
         oovs=0
-        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:100]
-        for w in tf:
+        tf=self.tf
+        for i in range(0,100):
+            w=tf[i]
             if self.cleaner.wordOOV(w[0]) == True:
                 oovs=oovs+1
         return(oovs)
         
-    def OOV500(self,wordDict):
+    def OOV500(self):
         oovs=0
-        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:500]
-        for w in tf:
+        tf=self.tf
+        for i in range(0,500):
+            w=tf[i]
             if self.cleaner.wordOOV(w[0]) == True:
                 oovs=oovs+1
         return(oovs)
-    def OOV200(self,wordDict):
+    def OOV200(self):
         oovs=0
-        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:200]
-        for w in tf:
+        tf=self.tf
+        for i in range(0,200):
+            w=tf[i]
             if self.cleaner.wordOOV(w[0]) == True:
                 oovs=oovs+1
         return(oovs)        
-    def UB100(self,wordDict):
+    def UB100(self):
         ubs=0
-        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:100]
-        for w in tf:
+        tf=self.tf
+        for i in range(0,100):
+            w=tf[i]
             if self.cleaner.wordUB(w[0]) == True:
-                oovs=oovs+1
-        return(oovs)
-    def UB500(self,wordDict):
+                ubs=ubs+1
+        return(ubs)
+    def UB500(self):
         ubs=0
-        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:500]
-        for w in tf:
+        tf=self.tf
+        for i in range(0,500):
+            w=tf[i]
             if self.cleaner.wordUB(w[0]) == True:
-                oovs=oovs+1
-        return(oovs)        
-    def UB200(self,wordDict):
+                ubs=ubs+1
+        return(ubs)        
+    def UB200(self):
         ubs=0
-        tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)[:200]
-        for w in tf:
+        tf=self.tf
+        for i in range(0,200):
+            w=tf[i]
             if self.cleaner.wordUB(w[0]) == True:
-                oovs=oovs+1
-        return(oovs)        
+                ubs=ubs+1
+        return(ubs)        
     
     def OOVfreq(self,wordDict):
         oovFreq=0
@@ -717,20 +735,27 @@ for s in socialMedia:
         for p in path:
             files.append(p)
 '''
+r=0
 for p in files:
     file=p.split('.')
     type=file[1]
     conf=config(type)
-    
+    print(p)
     wordCollection=[]
     wordStat=[]
     posStat=[]
     charStat=[]
     liwcStat=[]
+    
     #with open('./'+type+'/'+p,'r', encoding="utf-8") as csvfile:
     with open(p,'r',encoding='utf-8') as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
+        
         for row in readCSV:
+            r=r+1
+            if r%50==0:
+            
+                print(r)
             if type=='4chan':
                 content=cleaner.chanCleaner(row[conf[0]])
             if type=='voat':
@@ -754,6 +779,7 @@ for p in files:
     charFeat={}
     liwcFeat={}
     posFeat={}
+    print('First Pass')
     for item in wordCollection:
         for w in item:
             if w not in wordSum:
