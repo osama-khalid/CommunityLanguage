@@ -15,6 +15,7 @@ nltk.download('cmudict')
 
 import os
 import html
+import copy
 nltk.download('averaged_perceptron_tagger')
 import contractions #pip install
 from collections import Counter
@@ -32,6 +33,7 @@ import urllib.request as urllib         #ud convert url to unicode
 punctuations = RegexpTokenizer(r'\w+')
 from nltk.corpus import cmudict
 import math
+import collections
 CMUdict = cmudict.dict()      #syllable
 
 class preProcess(object):
@@ -440,6 +442,23 @@ class wordFeatures:
         self._syllableCount=self._syllables[0]
         self._syllableWords=self._syllables[1]
         self._shortWordCount=self._shortWord(wordDict)
+        
+        honore=self._honore(wordDict)
+        sichel=self._sichel(wordDict)
+        brunet=self._brunet(wordDict)
+        fkGrade=self._fleschKincaidGrade(wordDict)
+        fkReadability=self._fleschKincaidReadability(wordDict)
+        hapaxDislegomena=self._hapaxDislegomena(wordDict)
+        hapaxLegomena=self._hapaxLegomena(wordDict)
+        gunningFog=self._gunningFog(wordDict)
+        ARI=self._ARI(wordDict)
+        DCR=self._DCR(wordDict)
+        SMOG=self._SMOG(wordDict)
+        simpson=self._simpson(wordDict)
+        CLI=self._CLI(wordDict)
+        yule=self._yule(wordDict)
+        self.stats={'syllablePerWord':float(self._syllableCount)/float(self._syllableWords),'syllablePerSentence':float(self._syllableCount)/float(wordDict['_sentence']),'syllablePerPost':float(self._syllableCount)/float(wordDict['_post']),'shortPerWord':float(self._shortWordCount)/float(sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']),'shortPerSentence':float(self._shortWordCount)/float(wordDict['_sentence']),'shortPerPost':float(self._shortWordCount)/float(wordDict['_post']),'honore':honore,'sichel':sichel,'brunet':brunet,'fleschKincaidGrade':fkGrade,'fleschKincaidReadability':fkReadability,'hapaxDislegomenaFreq':hapaxDislegomena/float(sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']),'hapaxLegomenaFreq':hapaxLegomena/float(sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']),'gunningFog':gunningFog,'ARI':ARI,'DCR':DCR,'SMOG':SMOG,'simpson':simpson,'CLI':CLI,'yule':yule}
+        
       
     def syllableCount(self,word):      #returns count of syllables in word using CMU's dictionary, or none if token isn't a word
         '''
@@ -510,16 +529,39 @@ class wordFeatures:
         return(S)
     '''
     Numerical OverFlow
-    def _brunet(self,wordDict):
-        W=(sum(wordDict.values())-wordDict['_post']-wordDict['_sentence'])**((len(wordDict)-2)-0.17)
     '''
-    #def yule(self,wordDict):
+    def _brunet(self,wordDict):
+        intermed=(len(wordDict)-2)**-0.165
+        W=(sum(wordDict.values())-wordDict['_post']-wordDict['_sentence'])**intermed
+        return(W)
+    
+    def _yule(self,wordDict):
+        wordDictNew=copy.deepcopy(wordDict)
+        del wordDictNew['_sentence']
+        del wordDictNew['_post']
+        N=sum(wordDictNew.values())#no of words
+        freqs=list(wordDictNew.values())
+        Vi=dict(collections.Counter(freqs))       #Words Occuring i times
+        M=0
+        for v in Vi:
+            M=M+(v**2)*Vi[v]
+        K=1000*(M-N)/(N**2)
+        return(K)
         
-    def _fleschKincaid(self,wordDict):        #Flesch Kincaid is negative?
+    def _fleschKincaidReadability(self,wordDict):        #Flesch Kincaid is negative?
+        #https://www.verblio.com/blog/flesch-reading-ease is low scores = low readability
         totSyllable=self._syllableCount
         totWords=sum(wordDict.values())-wordDict['_post']-wordDict['_sentence']
         totSentences=wordDict['_sentence']
         FK=206.835-1.015*(totWords/totSentences)-84.6*(totSyllable/totWords)
+        return(FK)
+        
+    def _fleschKincaidGrade(self,wordDict):        #Harder to be negative?
+        #https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#cite_note-10
+        totSyllable=self._syllableCount
+        totWords=sum(wordDict.values())-wordDict['_post']-wordDict['_sentence']
+        totSentences=wordDict['_sentence']
+        FK=0.39*(totWords/totSentences)+11.8*(totSyllable/totWords)-15.59
         return(FK)
         
     def _hapaxDislegomena(self,wordDict):
@@ -538,6 +580,7 @@ class wordFeatures:
                     count=count+1
         return(count)     
     def _gunningFog(self,wordDict):
+        
         sentences=wordDict['_sentence']
         words=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
         complexWords=0
@@ -614,55 +657,81 @@ class neologism:
         wordDict['_sentence']=0
         wordDict['_post']=0
         self.tf=sorted(wordDict.items(),key=operator.itemgetter(1),reverse=True)
+        self.OOVlist=set(words.words()).union(set(cleaner.ud)).union(set(cleaner.emojiList))
+        oov100=self.OOV100()
+        oov500=self.OOV500()
+        oov200=self.OOV200()
+        oov1000=self.OOV1000()
+        oov5000=self.OOV5000()
+        self.stats={'oov100':oov100,'oov200':oov200,'oov500':oov500,'oov1000':oov1000,'oov5000':oov5000}
         
     def OOV100(self):
         oovs=0
-        tf=self.tf
-        for i in range(0,100):
-            w=tf[i]
-            if self.cleaner.wordOOV(w[0]) == True:
-                oovs=oovs+1
+        w=[]
+        tf=self.tf[:100]
+        for t in tf:
+            w.append(t[0])
+        oovs=len(w)-len(set(w).intersection(self.OOVlist))
+        
         return(oovs)
         
     def OOV500(self):
         oovs=0
-        tf=self.tf
-        for i in range(0,500):
-            w=tf[i]
-            if self.cleaner.wordOOV(w[0]) == True:
-                oovs=oovs+1
+        w=[]
+        tf=self.tf[:500]
+        for t in tf:
+            w.append(t[0])
+        oovs=len(w)-len(set(w).intersection(self.OOVlist))
+        
         return(oovs)
     def OOV200(self):
-        oovs=0
-        tf=self.tf
-        for i in range(0,200):
-            w=tf[i]
-            if self.cleaner.wordOOV(w[0]) == True:
-                oovs=oovs+1
-        return(oovs)        
+        tf=self.tf[:200]
+        w=[]
+        for t in tf:
+            w.append(t[0])
+        oovs=len(w)-len(set(w).intersection(self.OOVlist))
+        
+        return(oovs)      
+    def OOV1000(self):
+        tf=self.tf[:1000]
+        w=[]
+        for t in tf:
+            w.append(t[0])
+        oovs=len(w)-len(set(w).intersection(self.OOVlist))
+        
+        return(oovs)      
+    def OOV5000(self):
+        tf=self.tf[:5000]
+        w=[]
+        for t in tf:
+            w.append(t[0])
+        oovs=len(w)-len(set(w).intersection(self.OOVlist))
+        
+        return(oovs)              
+    '''
     def UB100(self):
         ubs=0
-        tf=self.tf
-        for i in range(0,100):
-            w=tf[i]
-            if self.cleaner.wordUB(w[0]) == True:
-                ubs=ubs+1
+        tf=self.tf[:100]
+        w=[]
+        for t in tf:
+            w.append(t[0])
+        ubs=len(w)-len(set(words.words()).intersection(set(w).intersection(self.cleaner.ud)))
         return(ubs)
     def UB500(self):
         ubs=0
-        tf=self.tf
-        for i in range(0,500):
-            w=tf[i]
-            if self.cleaner.wordUB(w[0]) == True:
-                ubs=ubs+1
+        tf=self.tf[:500]
+        w=[]
+        for t in tf:
+            w.append(t[0])
+        ubs=len(w)-len(set(words.words()).intersection(set(w).intersection(self.cleaner.ud)))
         return(ubs)        
     def UB200(self):
         ubs=0
-        tf=self.tf
-        for i in range(0,200):
-            w=tf[i]
-            if self.cleaner.wordUB(w[0]) == True:
-                ubs=ubs+1
+        tf=self.tf[:200]
+        w=[]
+        for t in tf:
+            w.append(t[0])
+        ubs=len(w)-len(set(words.words()).intersection(set(w).intersection(self.cleaner.ud)))
         return(ubs)        
     
     def OOVfreq(self,wordDict):
@@ -673,7 +742,7 @@ class neologism:
                 if self.cleaner.wordOOV(w)==True:
                     oovFreq=oovFreq+wordDict[w]
         return(oovFreq/float(words))
-                
+    '''            
 class posAggr:
     
     def posNGram(self,sentence,n=3):      #tokenized sentence       #sentenceTokenize[1]
@@ -721,7 +790,12 @@ class posAggr:
                 if t not in unigram:
                     unigram[t]=0
                 unigram[t]=unigram[t]+tempDictionary[t]
-            
+        Uni=sum(unigram.values())
+        Tri=sum(trigram.values())
+        for u in unigram:
+            unigram[u]=unigram[u]/float(Uni)
+        for t in trigram:
+            trigram[u]=trigram[u]/float(Tri)            
         return({**trigram,**unigram})
 cleaner=preProcess()
 
@@ -778,6 +852,8 @@ for p in files:
     wordSum={}
     charFeat={}
     liwcFeat={}
+    wordFeat={}
+    neologFeat={}
     posFeat={}
     print('First Pass')
     for item in wordCollection:
@@ -797,3 +873,12 @@ for p in files:
             if w not in liwcFeat:
                 liwcFeat[w]=0
             liwcFeat[w]=liwcFeat[w]+item[w]
+            
+    for item in posStat:
+        for subitem in item:
+            if subitem not in posFeat:
+                posFeat[subitem]=0
+            posFeat[subitem]=posFeat[subitem]+item[subitem]
+    wordFeat=wordFeatures(wordSum).stats
+    neologFeat=neologism(wordSum,cleaner).stats
+    
