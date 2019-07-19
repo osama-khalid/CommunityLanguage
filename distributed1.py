@@ -798,38 +798,50 @@ class posAggr:
 '''
 Slows down the calcuations a bit
 '''
-class neologismAggr:        
-    def __init__(self,post,cleaner):
+class neologism:        
+    def __init__(self,wordDict,cleaner):
         self.cleaner=cleaner
-        wordCollection=cleaner.wordTokenize(cleaner.postFlatten(cleaner.sentenceTokenize(post.lower())[0]))        
         
-        spellError=self.spellingError(wordCollection)
-        #spellError=0
-        elongation=self.elongation(wordCollection)
-        emoji=self.emoji(wordCollection)
-        urbanDictionary=self.urbanDictionary(wordCollection)
-        wordCount=len(wordCollection)
+        
+        #spellError=self.spellingError(wordDict)
+        spellError=0
+        elongation=self.elongation(wordDict)
+        emoji=self.emoji(wordDict)
+        urbanDictionary=self.urbanDictionary(wordDict)
+        urbanDictionary=0
+        emoji=0
+        wordCount=sum(wordDict.values())-wordDict['_sentence']-wordDict['_post']
         self.stats={'spellingError':spellError,'elongationCount':elongation,'emojiCount':emoji,'urbanDictionaryWords':urbanDictionary,'wordCount':wordCount}
         
         
-    def spellingError(self,wordCollection):
+    def spellingError(self,wordDict):
         spellError=0
-        for w in wordCollection:
-            if self.cleaner.spellCheck(w)==True:
-                spellError=spellError+1
+        for w in wordDict:
+            if w!='_sentence' and w!='_post':
+                if self.cleaner.spellCheck(w)==True:
+                    spellError=spellError+wordDict[w]
                 
         return(spellError)
-    def elongation(self,wordCollection):
+    def elongation(self,wordDict):
         elongCount=0
-        for w in wordCollection:
-            if self.cleaner.hasElongation(w)==True:
-                elongCount=elongCount+1
-    def emoji(self,wordCollection):
-        emojiCount=len(set(wordCollection).intersection(set(self.cleaner.emojiList)))
+        for w in wordDict:
+            if w!='_sentence' and w!='_post':
+                if self.cleaner.hasElongation(w)==True:
+                    elongCount=elongCount+wordDict[w]
+        return(elongCount)
+    def emoji(self,wordDict):
+        emojis=list(set(wordDict).intersection(set(self.cleaner.emojiList)))
+        emojiCount=0
+        for e in emojis:
+            emojiCount=emojiCount+wordDict[e]
+        
         
         return(emojiCount)
-    def urbanDictionary(self,wordCollection):
-        urbanCount=len(set(wordCollection).intersection(set(self.cleaner.ud)))
+    def urbanDictionary(self,wordDict):
+        urbanWords=list(set(wordDict).intersection(set(self.cleaner.ud)))
+        urbanCount=0
+        for u in urbanWords:
+            urbanCount=urbanCount+wordDict[u]
         
                 
         return(urbanCount)
@@ -882,8 +894,7 @@ for p in files:
             
             posStat.append(posAggr().stats(content,cleaner))
             liwcStat.append(LIWCPreProcess().liwcCount(content,cleaner))
-            A=neologismAggr(content,cleaner)
-            neoStat=A.stats
+
             #posAggr(content)
             #posStat.append(posAggr.stats)
             
@@ -895,11 +906,7 @@ for p in files:
     posFeat={}
     print('First Pass')
     
-    for item in neoStat:
-        for w in item:
-            if w not in neoFeat:
-                neoFeat[w]=0
-            neoFeat[w]=neoFeat[w]+item[w]
+
     for item in wordCollection:
         for w in item:
             if w not in wordSum:
@@ -924,5 +931,6 @@ for p in files:
                 posFeat[subitem]=0
             posFeat[subitem]=posFeat[subitem]+item[subitem]
     wordFeat=wordFeatures(wordSum).stats
-    OOVFeat=neologism(wordSum,cleaner).stats
+    OOVFeat=OOVs(wordSum,cleaner).stats
+    neoFeat=neologism(wordSum,cleaner).stats
     
