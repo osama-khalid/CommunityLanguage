@@ -197,7 +197,7 @@ class preProcess(object):
         '''
         norvigWord=spell(word)          #Norvig's 21 line spell check https://impythonist.wordpress.com/2014/03/18/peter-norvigs-21-line-spelling-corrector-using-probability-theory/
         if norvigWord==word:
-            if wordOOV(norvigWord)==False:      #Not OOV
+            if self.wordOOV(norvigWord)==False:      #Not OOV
                 return(False)             #No Spell Error
             else:
                 return(True)               #Spell Error
@@ -794,12 +794,17 @@ class posAggr:
         Tri=sum(trigram.values())
         sums={'unigram':Uni,'trigram':Tri}
         return({**trigram,**unigram})
+
+'''
+Slows down the calcuations a bit
+'''
 class neologismAggr:        
     def __init__(self,post,cleaner):
         self.cleaner=cleaner
         wordCollection=cleaner.wordTokenize(cleaner.postFlatten(cleaner.sentenceTokenize(post.lower())[0]))        
         
         spellError=self.spellingError(wordCollection)
+        #spellError=0
         elongation=self.elongation(wordCollection)
         emoji=self.emoji(wordCollection)
         urbanDictionary=self.urbanDictionary(wordCollection)
@@ -820,16 +825,12 @@ class neologismAggr:
             if self.cleaner.hasElongation(w)==True:
                 elongCount=elongCount+1
     def emoji(self,wordCollection):
-        emojiCount=0
-        for w in wordCollection:
-            if w in self.cleaner.emojiList:
-                emojiCount=emojiCount+1
+        emojiCount=len(set(wordCollection).intersection(set(self.cleaner.emojiList)))
+        
         return(emojiCount)
     def urbanDictionary(self,wordCollection):
-        urbanCount=0
-        for w in wordCollection:
-            if self.cleaner.wordUB(w)==True:
-                urbanCount=urbanCount+1
+        urbanCount=len(set(wordCollection).intersection(set(self.cleaner.ud)))
+        
                 
         return(urbanCount)
         
