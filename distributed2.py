@@ -517,7 +517,10 @@ class wordFeatures:
             if w!='_post' and w!='_sentence':
                 if wordDict[w]==1:
                     singles=singles+1
-        R=100*math.log10(sum(wordDict.values())-wordDict['_post']-wordDict['_sentence'])/(1-(singles/(len(wordDict)-2)))
+        try:
+            R=100*math.log10(sum(wordDict.values())-wordDict['_post']-wordDict['_sentence'])/(1-(singles/(len(wordDict)-2)))
+        except:
+            R=0
         return(R)
     def _sichel(self,wordDict):
         doubles=0
@@ -838,19 +841,17 @@ class emojiCount:
     
 socialMedia=['voat','4chan','reddit']
 files=['politics.reddit.2.2017-0']
-'''
-for s in socialMedia:
-    if os.path.isdir('./'+s)==True:
-        path=os,listdir('./'+s)
-        for p in path:
-            files.append(p)
-'''
-r=0
-for p in files:
+
+import os
+
+import pickle
+def fileWrite(p):
+    r=0
+    P=p
     file=p.split('.')
     type=file[1]
     conf=config(type)
-    print(p)
+    #print(p)
     wordCollection=[]
     wordStat=[]
     posStat=[]
@@ -859,29 +860,31 @@ for p in files:
     neoStat=[]
     emojiStat=[]
     #with open('./'+type+'/'+p,'r', encoding="utf-8") as csvfile:
-    with open(p,'r',encoding='utf-8') as csvfile:
+    with open('./temp/'+p,'r',encoding='utf-8') as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
         
         for row in readCSV:
             r=r+1
             if r%50==0:
             
-                print(r)
+                print(p,'\t',r)
             if type=='4chan':
                 content=cleaner.chanCleaner(row[conf[0]])
             if type=='voat':
                 content=cleaner.voatCleaner(row[conf[0]])
             if type=='reddit':
                 content=cleaner.redditCleaner(row[conf[0]])
-                
-            #wordCollection.append(wordPreprocess(content))
-            A=charAggr(content,cleaner)
-            charStat.append(A.stats)
-            emojiStat.append(emojiCount().count(content))
-            wordCollection.append(wordPreProcess().wordCount(content,cleaner))
             
-            posStat.append(posAggr().stats(content,cleaner))
-            liwcStat.append(LIWCPreProcess().liwcCount(content,cleaner))
+                #wordCollection.append(wordPreprocess(content))
+            if cleaner.wordTokenize(content) is not None:                
+                A=charAggr(content,cleaner)
+                charStat.append(A.stats)
+                emojiStat.append(emojiCount().count(content))
+               
+                wordCollection.append(wordPreProcess().wordCount(content,cleaner))
+                
+                posStat.append(posAggr().stats(content,cleaner))
+                liwcStat.append(LIWCPreProcess().liwcCount(content,cleaner))
 
             #posAggr(content)
             #posStat.append(posAggr.stats)
@@ -892,7 +895,7 @@ for p in files:
     wordFeat={}
     OOVFeat={}
     posFeat={}
-    print('First Pass')
+    #print('First Pass')
     
 
     for item in wordCollection:
@@ -1073,4 +1076,274 @@ for p in files:
     #specialChar
     
     
-    output={p:features}
+    output={P:features}
+    outfile=open('./pickled/'+P+'.pickle','wb')
+    pickle.dump(output,outfile)
+    outfile.close()
+    
+#fileWrite('politics.reddit.0.2014-5')    
+
+
+import threading
+
+def helper(files,k,j):
+    C=0
+    for f in files:
+        if C%j==k:
+            print(f,k)
+            fileWrite(f)
+            
+        C=C+1
+
+files=os.listdir('./temp/')
+t0 = threading.Thread(target=helper,args=(files,0,50))
+t0.daemon =True
+t0.start()
+
+t1 = threading.Thread(target=helper,args=(files,1,50))
+t1.daemon =True
+t1.start()
+
+t2 = threading.Thread(target=helper,args=(files,2,50))
+t2.daemon =True
+t2.start()
+
+t3 = threading.Thread(target=helper,args=(files,3,50))
+t3.daemon =True
+t3.start()
+
+t4 = threading.Thread(target=helper,args=(files,4,50))
+t4.daemon =True
+t4.start()
+
+t5 = threading.Thread(target=helper,args=(files,5,50))
+t5.daemon =True
+t5.start()
+
+t6 = threading.Thread(target=helper,args=(files,6,50))
+t6.daemon =True
+t6.start()
+
+t7 = threading.Thread(target=helper,args=(files,7,50))
+t7.daemon =True
+t7.start()
+
+t8 = threading.Thread(target=helper,args=(files,8,50))
+t8.daemon =True
+t8.start()
+
+t9 = threading.Thread(target=helper,args=(files,9,50))
+t9.daemon =True
+t9.start()
+
+t10 = threading.Thread(target=helper,args=(files,10,50))
+t10.daemon =True
+t10.start()
+
+t11 = threading.Thread(target=helper,args=(files,11,50))
+t11.daemon =True
+t11.start()
+
+t12 = threading.Thread(target=helper,args=(files,12,50))
+t12.daemon =True
+t12.start()
+
+t13 = threading.Thread(target=helper,args=(files,13,50))
+t13.daemon =True
+t13.start()
+
+t14 = threading.Thread(target=helper,args=(files,14,50))
+t14.daemon =True
+t14.start()
+
+t15 = threading.Thread(target=helper,args=(files,15,50))
+t15.daemon =True
+t15.start()
+
+t16 = threading.Thread(target=helper,args=(files,16,50))
+t16.daemon =True
+t16.start()
+
+t17 = threading.Thread(target=helper,args=(files,17,50))
+t17.daemon =True
+t17.start()
+
+t18 = threading.Thread(target=helper,args=(files,18,50))
+t18.daemon =True
+t18.start()
+
+t19 = threading.Thread(target=helper,args=(files,19,50))
+t19.daemon =True
+t19.start()
+
+t20 = threading.Thread(target=helper,args=(files,20,50))
+t20.daemon =True
+t20.start()
+
+t21 = threading.Thread(target=helper,args=(files,21,50))
+t21.daemon =True
+t21.start()
+
+t22 = threading.Thread(target=helper,args=(files,22,50))
+t22.daemon =True
+t22.start()
+
+t23 = threading.Thread(target=helper,args=(files,23,50))
+t23.daemon =True
+t23.start()
+
+t24 = threading.Thread(target=helper,args=(files,24,50))
+t24.daemon =True
+t24.start()
+
+t25 = threading.Thread(target=helper,args=(files,25,50))
+t25.daemon =True
+t25.start()
+
+t26 = threading.Thread(target=helper,args=(files,26,50))
+t26.daemon =True
+t26.start()
+
+t27 = threading.Thread(target=helper,args=(files,27,50))
+t27.daemon =True
+t27.start()
+
+t28 = threading.Thread(target=helper,args=(files,28,50))
+t28.daemon =True
+t28.start()
+
+t29 = threading.Thread(target=helper,args=(files,29,50))
+t29.daemon =True
+t29.start()
+
+t30 = threading.Thread(target=helper,args=(files,30,50))
+t30.daemon =True
+t30.start()
+
+t31 = threading.Thread(target=helper,args=(files,31,50))
+t31.daemon =True
+t31.start()
+
+t32 = threading.Thread(target=helper,args=(files,32,50))
+t32.daemon =True
+t32.start()
+
+t33 = threading.Thread(target=helper,args=(files,33,50))
+t33.daemon =True
+t33.start()
+
+t34 = threading.Thread(target=helper,args=(files,34,50))
+t34.daemon =True
+t34.start()
+
+t35 = threading.Thread(target=helper,args=(files,35,50))
+t35.daemon =True
+t35.start()
+
+t36 = threading.Thread(target=helper,args=(files,36,50))
+t36.daemon =True
+t36.start()
+
+t37 = threading.Thread(target=helper,args=(files,37,50))
+t37.daemon =True
+t37.start()
+
+t38 = threading.Thread(target=helper,args=(files,38,50))
+t38.daemon =True
+t38.start()
+
+t39 = threading.Thread(target=helper,args=(files,39,50))
+t39.daemon =True
+t39.start()
+
+t40 = threading.Thread(target=helper,args=(files,40,50))
+t40.daemon =True
+t40.start()
+
+t41 = threading.Thread(target=helper,args=(files,41,50))
+t41.daemon =True
+t41.start()
+
+t42 = threading.Thread(target=helper,args=(files,42,50))
+t42.daemon =True
+t42.start()
+
+t43 = threading.Thread(target=helper,args=(files,43,50))
+t43.daemon =True
+t43.start()
+
+t44 = threading.Thread(target=helper,args=(files,44,50))
+t44.daemon =True
+t44.start()
+
+t45 = threading.Thread(target=helper,args=(files,45,50))
+t45.daemon =True
+t45.start()
+
+t46 = threading.Thread(target=helper,args=(files,46,50))
+t46.daemon =True
+t46.start()
+
+t47 = threading.Thread(target=helper,args=(files,47,50))
+t47.daemon =True
+t47.start()
+
+t48 = threading.Thread(target=helper,args=(files,48,50))
+t48.daemon =True
+t48.start()
+
+t49 = threading.Thread(target=helper,args=(files,49,50))
+t49.daemon =True
+t49.start()
+
+
+a=t0.join()
+a=t1.join()
+a=t2.join()
+a=t3.join()
+a=t4.join()
+a=t5.join()
+a=t6.join()
+a=t7.join()
+a=t8.join()
+a=t9.join()
+a=t10.join()
+a=t11.join()
+a=t12.join()
+a=t13.join()
+a=t14.join()
+a=t15.join()
+a=t16.join()
+a=t17.join()
+a=t18.join()
+a=t19.join()
+a=t20.join()
+a=t21.join()
+a=t22.join()
+a=t23.join()
+a=t24.join()
+a=t25.join()
+a=t26.join()
+a=t27.join()
+a=t28.join()
+a=t29.join()
+a=t30.join()
+a=t31.join()
+a=t32.join()
+a=t33.join()
+a=t34.join()
+a=t35.join()
+a=t36.join()
+a=t37.join()
+a=t38.join()
+a=t39.join()
+a=t40.join()
+a=t41.join()
+a=t42.join()
+a=t43.join()
+a=t44.join()
+a=t45.join()
+a=t46.join()
+a=t47.join()
+a=t48.join()
+a=t49.join()
