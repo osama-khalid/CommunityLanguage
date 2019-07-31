@@ -33,16 +33,7 @@ def getDate(D,type,split=1):
         return(str(date_object.year)+'-'+str((int(date_object.month)-1)//split))        
     
 
-chanFiles = []
 
-for f in files:
-    if f.find('.csv_20') > -1:
-        chanFiles.append(f)
-        
-#for f in chanFiles:
-
-f=chanFiles[0]
-helper(f)
 def helper(f):
     files={}
     with open('./'+f,'r', encoding="utf-8") as csvfile:
@@ -76,4 +67,16 @@ def helper(f):
                 
                 files[fileName].writerow(row)
                 
-                
+
+
+chanFiles = []
+
+for f in files:
+    if f.find('.csv_20') > -1:
+        chanFiles.append(f)
+        print('\t'+f)
+        helper(f)
+#for f in chanFiles:
+
+f=chanFiles[0]
+        
