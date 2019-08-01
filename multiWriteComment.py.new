@@ -1,0 +1,116 @@
+import requests
+import csv
+import os
+import threading
+import time
+def merge(board):
+    data=[]
+    Files=os.listdir(".")
+    dbs=[]
+    for f in Files:
+        if f.find(board)>-1 and f.find('.commentID')>-1:
+            dbs.append(f)
+    for d in dbs:
+        content=open(d,'r').read().split('\n')
+        for row in content:
+            if len(row)>0:
+                
+                data.append(row)
+    return(data)	
+board='travel'
+
+
+post=merge(board)
+print(len(post))
+#post=list(set(post))
+#print(len(post))
+
+def helper(board,posts,k,j):
+    C=0
+    XX=0
+    K=0
+    csv_file=open(board+'_'+str(k)+'.comment.csv','w', encoding="utf-8")
+    writer=csv.writer(csv_file,delimiter=',', lineterminator='\n')
+    comments=[]
+    for p in posts:
+        if C%j==k:
+            comments.append(p)
+            XX=XX+1
+        if XX==700:
+            #print(len(comments))
+            K=K+1
+            XX=0
+            op=0
+            while True:
+                try:
+                    
+                    comment=requests.get("https://api.pushshift.io/reddit/comment/search?ids="+','.join(comments)).json()
+                    break
+                except:
+                    print('wait')
+                    print(K)
+                    time.sleep(10)
+                    
+            for c in comment['data']:
+                if c['subreddit']==board:
+                    author=c['author']
+                    body=c['body']
+                    image=0
+                    html=0
+                    if c['body'].find('http:')>-1 or c['body'].find('https:')>-1:
+                        html=1
+                    if c['body'].find('.jpg')>-1 or c['body'].find('.png')>-1:      
+                        image=1
+                    id=c['id']
+                    utc=c['created_utc']
+                    if 'is_submitter' in c and c['is_submitter']=='false':
+                        op=0
+                    else:
+                        op=1
+                    try:
+                        parent=c['permalink'].split('/')[3]
+                    except:
+                        parent=-1
+                    
+                    writer.writerow([author,body,html,image,id,utc,board,op,parent])
+            comments=[]
+            if K%100==0:
+                
+                print(K)
+        
+        
+        
+        C=C+1
+        
+t0 = threading.Thread(target=helper,args=(board,post,0,6)) 
+t0.daemon =True
+t0.start()
+
+t1 = threading.Thread(target=helper,args=(board,post,1,6)) 
+t1.daemon =True
+t1.start()
+
+t2 = threading.Thread(target=helper,args=(board,post,2,6)) 
+t2.daemon =True
+t2.start()
+
+t3 = threading.Thread(target=helper,args=(board,post,3,6)) 
+t3.daemon =True
+t3.start()
+
+t4 = threading.Thread(target=helper,args=(board,post,4,6)) 
+t4.daemon =True
+t4.start()
+
+t5 = threading.Thread(target=helper,args=(board,post,5,6)) 
+t5.daemon =True
+t5.start()
+
+
+
+a=t0.join()
+a=t1.join()
+a=t2.join()
+a=t3.join()
+a=t4.join()	        
+a=t5.join()	        
