@@ -42,7 +42,7 @@ def getFiles(type):
     if type=='reddit':
         usrCol=0
         for f in files:
-            if f.find('.reddit.comment.csv')>-1:
+            if f.find('.comment.csv')>-1:
                 paths.append(f)
     return(paths)
     
@@ -84,10 +84,12 @@ def helper(type):
     users=getUsers(type)
     conf=config(type)
     files={}
+    print(conf)
     for p in conf[3]:
         print(p)
         with open(p,'r', encoding="utf-8") as csvfile:   
             readCSV = csv.reader(csvfile, delimiter=',')
+            prefix=p.split('_')[0]
             for row in readCSV:  
                 
                 if len(row)>0:
@@ -96,7 +98,7 @@ def helper(type):
                             if len(row)>conf[2]:
                                     try:
                                         datekey=getDate(row[conf[2]],type,1)
-                                        fileName=type+'.'+str(i)+'.'+datekey
+                                        fileName=prefix+'.'+type+'.'+str(i)+'.'+datekey
                                         if os.path.isfile(fileName) == False:
                                             csfile=open(fileName,'w', encoding="utf-8")
                                             files[str(i)+'.'+datekey]=csv.writer(csfile,delimiter=',', lineterminator='\n')
@@ -113,9 +115,9 @@ def helper(type):
             
     for f in files:
         file=type+'.'+f
-        file.close()
+        
                 
       
-helper('4chan')                    
+#helper('4chan')                    
 helper('reddit')              
             
