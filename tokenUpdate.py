@@ -404,7 +404,7 @@ def helper(k,j):
                         w=stemmer.stem(word)
                         if w not in wordSum:
                             wordSum[w]=0
-                        wordSum[w]=wordSum[w]+item[w]
+                        wordSum[w]=wordSum[w]+item[word]
                     
             wordSumDeep=copy.deepcopy(wordSum)        
             totSum=sum(wordSum.values())
