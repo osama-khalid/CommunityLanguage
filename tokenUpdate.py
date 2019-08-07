@@ -20,6 +20,7 @@ nltk.download('punkt')
 nltk.download('words')
 nltk.download('cmudict')
 nltk.download('stopwords')
+stemmer=nltk.stem.PorterStemmer()
 from nltk.corpus import stopwords
 stopWords=set(stopwords.words('english'))
 import threading
@@ -398,10 +399,12 @@ def helper(k,j):
                     
             wordSum={}            
             for item in wordCollection:
-                for w in item:
-                    if w not in wordSum:
-                        wordSum[w]=0
-                    wordSum[w]=wordSum[w]+item[w]
+                for word in item:                       #Stemming
+                    if word.isdigit()==False:
+                        w=stemmer.stem(word)
+                        if w not in wordSum:
+                            wordSum[w]=0
+                        wordSum[w]=wordSum[w]+item[w]
                     
             wordSumDeep=copy.deepcopy(wordSum)        
             totSum=sum(wordSum.values())
