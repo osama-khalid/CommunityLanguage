@@ -468,7 +468,8 @@ class wordFeatures:
             return('syllabeCount')
         word=word.lower()
         if word in CMUdict:
-            return(len(CMUdict[word][0]))
+            return[len([y for y in x if y[-1].isdigit()]) for x in CMUdict[word.lower()]]
+            #return(len(CMUdict[word][0]))
         else:
             return(-1)
         
@@ -860,7 +861,7 @@ def fileWrite(p):
     neoStat=[]
     emojiStat=[]
     #with open('./'+type+'/'+p,'r', encoding="utf-8") as csvfile:
-    with open('./temp/'+p,'r',encoding='utf-8') as csvfile:
+    with open('./DataDump/'+p,'r',encoding='utf-8') as csvfile:
         readCSV = csv.reader(csvfile, delimiter=',')
         
         for row in readCSV:
@@ -1095,7 +1096,7 @@ def helper(files,k,j):
             
         C=C+1
 
-files=os.listdir('./temp/')
+files=os.listdir('./DataDump/')
 t0 = threading.Thread(target=helper,args=(files,0,50))
 t0.daemon =True
 t0.start()
