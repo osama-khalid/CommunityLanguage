@@ -468,7 +468,7 @@ class wordFeatures:
             return('syllabeCount')
         word=word.lower()
         if word in CMUdict:
-            return[len([y for y in x if y[-1].isdigit()]) for x in CMUdict[word.lower()]]
+            return[len([y for y in x if y[-1].isdigit()]) for x in CMUdict[word.lower()]][0]
             #return(len(CMUdict[word][0]))
         else:
             return(-1)
