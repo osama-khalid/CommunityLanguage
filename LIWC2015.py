@@ -21,7 +21,7 @@ class liwc2007:
         for line in dict_text.split("\r\n"):
             self.liwc_cate_number_by_word[line.strip().split("\t")[0]] = set([int(item) for item in line.strip().split("\t")[1:]])
 
-    def __init__(self, liwcdic_file="LIWC2007_English100131.dic"):
+    def __init__(self, liwcdic_file="LIWC2015_English_OK.dic"):
         
         self.liwc_category_names = ["WC","funct","pronoun","ppron","i","we","you","shehe","they","ipron","article","verb","auxverb","past","present","future","adverb","preps","conj","negate","quant","number","swear","social","family","friend","humans","affect","posemo","negemo","anx","anger","sad","cogmech","insight","cause","discrep","tentat","certain","inhib","incl","excl","percept","see","hear","feel","bio","body","health","sexual","ingest","relativ","motion","space","time","work","achieve","leisure","home","money","relig","death","assent","nonfl","filler"]
         self.liwc_cate_name_by_number = {}
